@@ -79,32 +79,56 @@ public abstract partial class SessionService : ISessionService
     /// <inheritdoc/>
     public event EventHandler<UpdateFailedEventArgs>? UpdateFailed;
 
-    private void OnInitializing()
+    /// <summary>
+    /// Event invoker for <see cref="Initializing"/> event.
+    /// </summary>
+    protected virtual void OnInitializing()
     {
         Initializing?.Invoke(this, EventArgs.Empty);
     }
 
-    private void OnInitialized()
+    /// <summary>
+    /// Event invoker for <see cref="Initialized"/> event.
+    /// </summary>
+    protected virtual void OnInitialized()
     {
         Initialized?.Invoke(this, EventArgs.Empty);
     }
 
-    private void OnInitializationFailed(Exception exception)
+    /// <summary>
+    /// Event invoker for <see cref="InitializationFailed"/> event.
+    /// </summary>
+    /// <param name="exception">
+    /// The exception of the error.
+    /// </param>
+    protected virtual void OnInitializationFailed(Exception exception)
     {
         InitializationFailed?.Invoke(this, new InitializationFailedEventArgs(exception));
     }
 
-    private void OnUpdating()
+    /// <summary>
+    /// Event invoker for <see cref="Updating"/> event.
+    /// </summary>
+    protected virtual void OnUpdating()
     {
         Updating?.Invoke(this, EventArgs.Empty);
     }
 
-    private void OnUpdated()
+    /// <summary>
+    /// Event invoker for <see cref="Updated"/> event.
+    /// </summary>
+    protected virtual void OnUpdated()
     {
         Updated?.Invoke(this, EventArgs.Empty);
     }
 
-    private void OnUpdateFailed(Exception exception)
+    /// <summary>
+    /// Event invoker for <see cref="UpdateFailed"/> event.
+    /// </summary>
+    /// <param name="exception">
+    /// The exception of the error.
+    /// </param>
+    protected virtual void OnUpdateFailed(Exception exception)
     {
         UpdateFailed?.Invoke(this, new UpdateFailedEventArgs(exception));
     }

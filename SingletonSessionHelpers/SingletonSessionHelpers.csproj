@@ -23,8 +23,8 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageReleaseNotes>* New abstraction</PackageReleaseNotes>
-    <Version>1.0.1</Version>
+    <PackageReleaseNotes>* Exposed event invokers</PackageReleaseNotes>
+    <Version>1.0.2</Version>
   </PropertyGroup>
 
   <ItemGroup>
