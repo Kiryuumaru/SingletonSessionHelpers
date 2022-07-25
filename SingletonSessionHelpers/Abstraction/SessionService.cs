@@ -179,18 +179,7 @@ public abstract partial class SessionService : ISessionService
         return new ValueTask(Task.CompletedTask);
     }
 
-    /// <summary>
-    /// Initializes the session service.
-    /// </summary>
-    /// <param name="onError">
-    /// Callback for the initialization error to provide option to retry the operation.
-    /// </param>
-    /// <param name="cancellationToken">
-    /// The cancellation token for the created <see cref="ValueTask"/>.
-    /// </param>
-    /// <returns>
-    /// The created <see cref="ValueTask"/>.
-    /// </returns>
+    /// <inheritdoc/>
     public async ValueTask InitializeAsync(Func<RetryIfErrorArgs, Task>? onError, CancellationToken cancellationToken = default)
     {
         if (IsInitialized)
@@ -242,12 +231,7 @@ public abstract partial class SessionService : ISessionService
         }, cancellationToken);
     }
 
-    /// <summary>
-    /// Initializes the session service and forget.
-    /// </summary>
-    /// <param name="cancellationToken">
-    /// The cancellation token for the operation.
-    /// </param>
+    /// <inheritdoc/>
     public async void Initialize(CancellationToken cancellationToken = default)
     {
         await InitializeAsync(cancellationToken);
@@ -287,18 +271,7 @@ public abstract partial class SessionService : ISessionService
         return new ValueTask(Task.CompletedTask);
     }
 
-    /// <summary>
-    /// Updates the session service.
-    /// </summary>
-    /// <param name="onError">
-    /// Callback for the update error to provide option to retry the operation.
-    /// </param>
-    /// <param name="cancellationToken">
-    /// The cancellation token for the created <see cref="ValueTask"/>.
-    /// </param>
-    /// <returns>
-    /// The created <see cref="ValueTask"/>.
-    /// </returns>
+    /// <inheritdoc/>
     public async ValueTask UpdateAsync(Func<RetryIfErrorArgs, Task>? onError, CancellationToken cancellationToken = default)
     {
         IsUpdating = true;
@@ -345,12 +318,7 @@ public abstract partial class SessionService : ISessionService
         }, cancellationToken);
     }
 
-    /// <summary>
-    /// Updates the session service and forget.
-    /// </summary>
-    /// <param name="cancellationToken">
-    /// The cancellation token for the operation.
-    /// </param>
+    /// <inheritdoc/>
     public async void Update(CancellationToken cancellationToken = default)
     {
         await UpdateAsync(cancellationToken);
