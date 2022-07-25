@@ -9,41 +9,86 @@ using System.Threading.Tasks;
 
 namespace SingletonSessionHelpers.Abstraction;
 
+/// <summary>
+/// Implementation for all singleton session service.
+/// </summary>
 [AsyncDisposable]
 public abstract partial class SessionService : ISessionService
 {
     #region Events
 
+    /// <summary>
+    /// Event args for <see cref="InitializationFailed"/> event.
+    /// </summary>
     public class InitializationFailedEventArgs : EventArgs
     {
+        /// <summary>
+        /// The exception of the error.
+        /// </summary>
         public Exception Exception { get; }
 
+        /// <summary>
+        /// Creates a new instance for <see cref="InitializationFailedEventArgs"/>.
+        /// </summary>
+        /// <param name="exception">
+        /// The exception of the error.
+        /// </param>
         public InitializationFailedEventArgs(Exception exception)
         {
             Exception = exception;
         }
     }
 
+    /// <summary>
+    /// Event args for <see cref="UpdateFailed"/> event.
+    /// </summary>
     public class UpdateFailedEventArgs : EventArgs
     {
+        /// <summary>
+        /// The exception of the error.
+        /// </summary>
         public Exception Exception { get; }
 
+        /// <summary>
+        /// Creates a new instance for <see cref="UpdateFailedEventArgs"/>.
+        /// </summary>
+        /// <param name="exception">
+        /// The exception of the error.
+        /// </param>
         public UpdateFailedEventArgs(Exception exception)
         {
             Exception = exception;
         }
     }
 
+    /// <summary>
+    /// Event invoked if the session is in initialization phase.
+    /// </summary>
     public event EventHandler? Initializing;
 
+    /// <summary>
+    /// Event invoked if the session is initialized.
+    /// </summary>
     public event EventHandler? Initialized;
 
+    /// <summary>
+    /// Event invoked if the session initialization has failed.
+    /// </summary>
     public event EventHandler<InitializationFailedEventArgs>? InitializationFailed;
 
+    /// <summary>
+    /// Event invoked if the session is updating.
+    /// </summary>
     public event EventHandler? Updating;
 
+    /// <summary>
+    /// Event invoked if the session is updated.
+    /// </summary>
     public event EventHandler? Updated;
 
+    /// <summary>
+    /// Event invoked if the session update has failed.
+    /// </summary>
     public event EventHandler<UpdateFailedEventArgs>? UpdateFailed;
 
     private void OnInitializing()
@@ -80,12 +125,24 @@ public abstract partial class SessionService : ISessionService
 
     #region Properties
 
+    /// <summary>
+    /// Gets <c>true</c> if the session is initialized; otherwise, <c>false</c>.
+    /// </summary>
     public bool IsInitialized { get; private set; }
 
+    /// <summary>
+    /// Gets <c>true</c> if the session is initializing; otherwise, <c>false</c>.
+    /// </summary>
     public bool IsInitializing { get; private set; }
 
+    /// <summary>
+    /// Gets <c>true</c> if the session is updating; otherwise, <c>false</c>.
+    /// </summary>
     public bool IsUpdating { get; private set; }
 
+    /// <summary>
+    /// The <see cref="DateTimeOffset"/> of the last update.
+    /// </summary>
     public DateTimeOffset? LastUpdated { get; private set; }
 
     #endregion
@@ -94,16 +151,46 @@ public abstract partial class SessionService : ISessionService
 
     private Task? initializeHolder;
 
+    /// <summary>
+    /// Provides an overridable method for pre initialization phase of the session.
+    /// </summary>
+    /// <param name="cancellationToken">
+    /// The cancellation token for the created <see cref="ValueTask"/>.
+    /// </param>
+    /// <returns>
+    /// The created <see cref="ValueTask"/>.
+    /// </returns>
     protected virtual ValueTask PreInitializeAsync(CancellationToken cancellationToken = default)
     {
         return new ValueTask(Task.CompletedTask);
     }
 
+    /// <summary>
+    /// Provides an overridable method for post initialization phase of the session.
+    /// </summary>
+    /// <param name="cancellationToken">
+    /// The cancellation token for the created <see cref="ValueTask"/>.
+    /// </param>
+    /// <returns>
+    /// The created <see cref="ValueTask"/>.
+    /// </returns>
     protected virtual ValueTask PostInitializeAsync(CancellationToken cancellationToken = default)
     {
         return new ValueTask(Task.CompletedTask);
     }
 
+    /// <summary>
+    /// Initializes the session service.
+    /// </summary>
+    /// <param name="onError">
+    /// Callback for the initialization error to provide option to retry the operation.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token for the created <see cref="ValueTask"/>.
+    /// </param>
+    /// <returns>
+    /// The created <see cref="ValueTask"/>.
+    /// </returns>
     public async ValueTask InitializeAsync(Func<RetryIfErrorArgs, Task>? onError, CancellationToken cancellationToken = default)
     {
         if (IsInitialized)
@@ -145,6 +232,7 @@ public abstract partial class SessionService : ISessionService
         }, cancellationToken), ref initializeHolder, cancellationToken);
     }
 
+    /// <inheritdoc/>
     public ValueTask InitializeAsync(CancellationToken cancellationToken = default)
     {
         return InitializeAsync(args =>
@@ -154,6 +242,12 @@ public abstract partial class SessionService : ISessionService
         }, cancellationToken);
     }
 
+    /// <summary>
+    /// Initializes the session service and forget.
+    /// </summary>
+    /// <param name="cancellationToken">
+    /// The cancellation token for the operation.
+    /// </param>
     public async void Initialize(CancellationToken cancellationToken = default)
     {
         await InitializeAsync(cancellationToken);
@@ -165,16 +259,46 @@ public abstract partial class SessionService : ISessionService
 
     private Task? updateHolder;
 
+    /// <summary>
+    /// Provides an overridable method for pre update phase of the session.
+    /// </summary>
+    /// <param name="cancellationToken">
+    /// The cancellation token for the created <see cref="ValueTask"/>.
+    /// </param>
+    /// <returns>
+    /// The created <see cref="ValueTask"/>.
+    /// </returns>
     protected virtual ValueTask PreUpdateAsync(CancellationToken cancellationToken = default)
     {
         return new ValueTask(Task.CompletedTask);
     }
 
+    /// <summary>
+    /// Provides an overridable method for post update phase of the session.
+    /// </summary>
+    /// <param name="cancellationToken">
+    /// The cancellation token for the created <see cref="ValueTask"/>.
+    /// </param>
+    /// <returns>
+    /// The created <see cref="ValueTask"/>.
+    /// </returns>
     protected virtual ValueTask PostUpdateAsync(CancellationToken cancellationToken = default)
     {
         return new ValueTask(Task.CompletedTask);
     }
 
+    /// <summary>
+    /// Updates the session service.
+    /// </summary>
+    /// <param name="onError">
+    /// Callback for the update error to provide option to retry the operation.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token for the created <see cref="ValueTask"/>.
+    /// </param>
+    /// <returns>
+    /// The created <see cref="ValueTask"/>.
+    /// </returns>
     public async ValueTask UpdateAsync(Func<RetryIfErrorArgs, Task>? onError, CancellationToken cancellationToken = default)
     {
         IsUpdating = true;
@@ -211,6 +335,7 @@ public abstract partial class SessionService : ISessionService
         }, cancellationToken), ref updateHolder, cancellationToken);
     }
 
+    /// <inheritdoc/>
     public ValueTask UpdateAsync(CancellationToken cancellationToken = default)
     {
         return UpdateAsync(args =>
@@ -220,6 +345,12 @@ public abstract partial class SessionService : ISessionService
         }, cancellationToken);
     }
 
+    /// <summary>
+    /// Updates the session service and forget.
+    /// </summary>
+    /// <param name="cancellationToken">
+    /// The cancellation token for the operation.
+    /// </param>
     public async void Update(CancellationToken cancellationToken = default)
     {
         await UpdateAsync(cancellationToken);
@@ -229,16 +360,29 @@ public abstract partial class SessionService : ISessionService
 
     #region Disposable Logic
 
+    /// <summary>
+    /// Provides an overridable method for pre despose phase of the session.
+    /// </summary>
+    /// <returns>
+    /// The created <see cref="ValueTask"/>.
+    /// </returns>
     protected virtual ValueTask PreDisposeAsync()
     {
         return new ValueTask(Task.CompletedTask);
     }
 
+    /// <summary>
+    /// Provides an overridable method for post despose phase of the session.
+    /// </summary>
+    /// <returns>
+    /// The created <see cref="ValueTask"/>.
+    /// </returns>
     protected virtual ValueTask PostDisposeAsync()
     {
         return new ValueTask(Task.CompletedTask);
     }
 
+    /// <inheritdoc/>
     public async ValueTask DisposeAsync(bool disposing)
     {
         if (disposing)
@@ -248,6 +392,7 @@ public abstract partial class SessionService : ISessionService
         }
     }
 
+    /// <inheritdoc/>
     public async void Dispose(bool disposing)
     {
         await DisposeAsync(disposing);

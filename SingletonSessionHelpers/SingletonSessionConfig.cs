@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 
 namespace SingletonSessionHelpers;
 
+/// <summary>
+/// The base config fot the singleton session service.
+/// </summary>
 public abstract class SingletonSessionConfig
 {
-    public SingletonSessionConfig()
-    {
 
-    }
 }
