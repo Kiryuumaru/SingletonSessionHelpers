@@ -146,9 +146,6 @@ public abstract partial class SessionService : ISessionService
     /// <inheritdoc/>
     public bool IsUpdating { get; private set; }
 
-    /// <inheritdoc/>
-    public DateTimeOffset? LastUpdated { get; private set; }
-
     #endregion
 
     #region Initialize Logic
@@ -288,8 +285,6 @@ public abstract partial class SessionService : ISessionService
             {
                 await PreUpdateAsync(cancellationToken);
                 await PostUpdateAsync(cancellationToken);
-
-                LastUpdated = DateTimeOffset.Now;
             }
             catch (Exception ex)
             {

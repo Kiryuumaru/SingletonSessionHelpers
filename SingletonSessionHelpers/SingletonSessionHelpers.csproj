@@ -23,8 +23,8 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageReleaseNotes>* Exposed event invokers</PackageReleaseNotes>
-    <Version>1.0.2</Version>
+    <PackageReleaseNotes>* Cleanups</PackageReleaseNotes>
+    <Version>1.0.3</Version>
   </PropertyGroup>
 
   <ItemGroup>

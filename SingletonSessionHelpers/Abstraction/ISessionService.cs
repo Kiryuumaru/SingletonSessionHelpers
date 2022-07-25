@@ -60,11 +60,6 @@ public interface ISessionService : IAsyncDisposable, IDisposable
     public bool IsUpdating { get; }
 
     /// <summary>
-    /// The <see cref="DateTimeOffset"/> of the last update.
-    /// </summary>
-    public DateTimeOffset? LastUpdated { get; }
-
-    /// <summary>
     /// Initializes the session service.
     /// </summary>
     /// <param name="onError">
