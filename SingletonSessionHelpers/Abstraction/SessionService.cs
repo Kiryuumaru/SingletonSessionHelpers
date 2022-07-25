@@ -61,34 +61,22 @@ public abstract partial class SessionService : ISessionService
         }
     }
 
-    /// <summary>
-    /// Event invoked if the session is in initialization phase.
-    /// </summary>
+    /// <inheritdoc/>
     public event EventHandler? Initializing;
 
-    /// <summary>
-    /// Event invoked if the session is initialized.
-    /// </summary>
+    /// <inheritdoc/>
     public event EventHandler? Initialized;
 
-    /// <summary>
-    /// Event invoked if the session initialization has failed.
-    /// </summary>
+    /// <inheritdoc/>
     public event EventHandler<InitializationFailedEventArgs>? InitializationFailed;
 
-    /// <summary>
-    /// Event invoked if the session is updating.
-    /// </summary>
+    /// <inheritdoc/>
     public event EventHandler? Updating;
 
-    /// <summary>
-    /// Event invoked if the session is updated.
-    /// </summary>
+    /// <inheritdoc/>
     public event EventHandler? Updated;
 
-    /// <summary>
-    /// Event invoked if the session update has failed.
-    /// </summary>
+    /// <inheritdoc/>
     public event EventHandler<UpdateFailedEventArgs>? UpdateFailed;
 
     private void OnInitializing()
@@ -125,24 +113,16 @@ public abstract partial class SessionService : ISessionService
 
     #region Properties
 
-    /// <summary>
-    /// Gets <c>true</c> if the session is initialized; otherwise, <c>false</c>.
-    /// </summary>
+    /// <inheritdoc/>
     public bool IsInitialized { get; private set; }
 
-    /// <summary>
-    /// Gets <c>true</c> if the session is initializing; otherwise, <c>false</c>.
-    /// </summary>
+    /// <inheritdoc/>
     public bool IsInitializing { get; private set; }
 
-    /// <summary>
-    /// Gets <c>true</c> if the session is updating; otherwise, <c>false</c>.
-    /// </summary>
+    /// <inheritdoc/>
     public bool IsUpdating { get; private set; }
 
-    /// <summary>
-    /// The <see cref="DateTimeOffset"/> of the last update.
-    /// </summary>
+    /// <inheritdoc/>
     public DateTimeOffset? LastUpdated { get; private set; }
 
     #endregion
@@ -351,7 +331,7 @@ public abstract partial class SessionService : ISessionService
     }
 
     /// <inheritdoc/>
-    public async ValueTask DisposeAsync(bool disposing)
+    protected async ValueTask DisposeAsync(bool disposing)
     {
         if (disposing)
         {
@@ -361,9 +341,9 @@ public abstract partial class SessionService : ISessionService
     }
 
     /// <inheritdoc/>
-    public async void Dispose(bool disposing)
+    public async void Dispose()
     {
-        await DisposeAsync(disposing);
+        await DisposeAsync();
     }
 
     #endregion

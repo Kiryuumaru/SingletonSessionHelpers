@@ -5,14 +5,65 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using static SingletonSessionHelpers.Abstraction.SessionService;
 
 namespace SingletonSessionHelpers.Abstraction;
 
 /// <summary>
 /// Interface declaration for all singleton session service.
 /// </summary>
-public interface ISessionService : IAsyncDisposable
+public interface ISessionService : IAsyncDisposable, IDisposable
 {
+    /// <summary>
+    /// Event invoked if the session is in initialization phase.
+    /// </summary>
+    event EventHandler? Initializing;
+
+    /// <summary>
+    /// Event invoked if the session is initialized.
+    /// </summary>
+    event EventHandler? Initialized;
+
+    /// <summary>
+    /// Event invoked if the session initialization has failed.
+    /// </summary>
+    event EventHandler<InitializationFailedEventArgs>? InitializationFailed;
+
+    /// <summary>
+    /// Event invoked if the session is updating.
+    /// </summary>
+    event EventHandler? Updating;
+
+    /// <summary>
+    /// Event invoked if the session is updated.
+    /// </summary>
+    event EventHandler? Updated;
+
+    /// <summary>
+    /// Event invoked if the session update has failed.
+    /// </summary>
+    event EventHandler<UpdateFailedEventArgs>? UpdateFailed;
+
+    /// <summary>
+    /// Gets <c>true</c> if the session is initialized; otherwise, <c>false</c>.
+    /// </summary>
+    public bool IsInitialized { get; }
+
+    /// <summary>
+    /// Gets <c>true</c> if the session is initializing; otherwise, <c>false</c>.
+    /// </summary>
+    public bool IsInitializing { get; }
+
+    /// <summary>
+    /// Gets <c>true</c> if the session is updating; otherwise, <c>false</c>.
+    /// </summary>
+    public bool IsUpdating { get; }
+
+    /// <summary>
+    /// The <see cref="DateTimeOffset"/> of the last update.
+    /// </summary>
+    public DateTimeOffset? LastUpdated { get; }
+
     /// <summary>
     /// Initializes the session service.
     /// </summary>
