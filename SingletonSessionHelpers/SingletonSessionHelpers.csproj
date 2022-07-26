@@ -23,8 +23,8 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageReleaseNotes>* Cleanups</PackageReleaseNotes>
-    <Version>1.0.3</Version>
+    <PackageReleaseNotes>* Fixed update logic not executing</PackageReleaseNotes>
+    <Version>1.0.4</Version>
   </PropertyGroup>
 
   <ItemGroup>

@@ -11,7 +11,7 @@ internal static class TaskHelpers
 {
     public static Task SingleTaskInvoker(Func<Task?> task, ref Task? taskHolder, CancellationToken cancellationToken = default)
     {
-        if (taskHolder == null)
+        if (taskHolder == null || taskHolder.IsCompleted)
         {
             taskHolder = Task.Run(task, cancellationToken);
 
