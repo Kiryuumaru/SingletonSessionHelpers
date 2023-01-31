@@ -10,9 +10,9 @@ using static SingletonSessionHelpers.Abstraction.SessionService;
 namespace SingletonSessionHelpers.Abstraction;
 
 /// <summary>
-/// Interface declaration for all singleton session service.
+/// Interface declaration for singleton session service.
 /// </summary>
-public interface ISessionService : IAsyncDisposable, IDisposable
+public interface ISessionService
 {
     /// <summary>
     /// Event invoked if the session is in initialization phase.
@@ -43,6 +43,16 @@ public interface ISessionService : IAsyncDisposable, IDisposable
     /// Event invoked if the session update has failed.
     /// </summary>
     event EventHandler<UpdateFailedEventArgs>? UpdateFailed;
+
+    /// <summary>
+    /// Event invoked if the session is initializing or updating.
+    /// </summary>
+    public event EventHandler? InitializingOrUpdating;
+
+    /// <summary>
+    /// Event invoked if the session is initialized or updated.
+    /// </summary>
+    public event EventHandler? InitializedOrUpdated;
 
     /// <summary>
     /// Gets <c>true</c> if the session is initialized; otherwise, <c>false</c>.

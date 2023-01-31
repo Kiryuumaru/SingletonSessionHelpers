@@ -1,0 +1,8 @@
+[
+  {
+    "id": "singletonSessionHelpers_nuget_test",
+    "name": "SingletonSessionHelpers Test",
+    "project_dir": "SingletonSessionHelpers.UnitTest",
+    "builds_on": "ubuntu-22.04"
+  }
+]

@@ -1,5 +1,4 @@
-﻿using DisposableHelpers.Attributes;
-using SingletonSessionHelpers.Utilities;
+﻿using SingletonSessionHelpers.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +11,6 @@ namespace SingletonSessionHelpers.Abstraction;
 /// <summary>
 /// Implementation for all singleton session service.
 /// </summary>
-[AsyncDisposable]
 public abstract partial class SessionService : ISessionService
 {
     #region Events
@@ -79,12 +77,19 @@ public abstract partial class SessionService : ISessionService
     /// <inheritdoc/>
     public event EventHandler<UpdateFailedEventArgs>? UpdateFailed;
 
+    /// <inheritdoc/>
+    public event EventHandler? InitializingOrUpdating;
+
+    /// <inheritdoc/>
+    public event EventHandler? InitializedOrUpdated;
+
     /// <summary>
     /// Event invoker for <see cref="Initializing"/> event.
     /// </summary>
     protected virtual void OnInitializing()
     {
         Initializing?.Invoke(this, EventArgs.Empty);
+        InitializingOrUpdating?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>
@@ -93,6 +98,7 @@ public abstract partial class SessionService : ISessionService
     protected virtual void OnInitialized()
     {
         Initialized?.Invoke(this, EventArgs.Empty);
+        InitializedOrUpdated?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>
@@ -112,6 +118,7 @@ public abstract partial class SessionService : ISessionService
     protected virtual void OnUpdating()
     {
         Updating?.Invoke(this, EventArgs.Empty);
+        InitializingOrUpdating?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>
@@ -120,6 +127,7 @@ public abstract partial class SessionService : ISessionService
     protected virtual void OnUpdated()
     {
         Updated?.Invoke(this, EventArgs.Empty);
+        InitializedOrUpdated?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>
@@ -197,6 +205,8 @@ public abstract partial class SessionService : ISessionService
             try
             {
                 await PreInitializeAsync(cancellationToken);
+                await PreInitializeOrUpdateAsync(cancellationToken);
+                await PostInitializeOrUpdateAsync(cancellationToken);
                 await PostInitializeAsync(cancellationToken);
 
                 IsInitialized = true;
@@ -284,6 +294,8 @@ public abstract partial class SessionService : ISessionService
             try
             {
                 await PreUpdateAsync(cancellationToken);
+                await PreInitializeOrUpdateAsync(cancellationToken);
+                await PostInitializeOrUpdateAsync(cancellationToken);
                 await PostUpdateAsync(cancellationToken);
             }
             catch (Exception ex)
@@ -325,44 +337,34 @@ public abstract partial class SessionService : ISessionService
 
     #endregion
 
-    #region Disposable Logic
+    #region Initialize or Update Logic
 
     /// <summary>
-    /// Provides an overridable method for pre despose phase of the session.
+    /// Provides an overridable method for pre initialize or update phase of the session.
     /// </summary>
+    /// <param name="cancellationToken">
+    /// The cancellation token for the created <see cref="ValueTask"/>.
+    /// </param>
     /// <returns>
     /// The created <see cref="ValueTask"/>.
     /// </returns>
-    protected virtual ValueTask PreDisposeAsync()
+    protected virtual ValueTask PreInitializeOrUpdateAsync(CancellationToken cancellationToken = default)
     {
         return new ValueTask(Task.CompletedTask);
     }
 
     /// <summary>
-    /// Provides an overridable method for post despose phase of the session.
+    /// Provides an overridable method for post initialize or update phase of the session.
     /// </summary>
+    /// <param name="cancellationToken">
+    /// The cancellation token for the created <see cref="ValueTask"/>.
+    /// </param>
     /// <returns>
     /// The created <see cref="ValueTask"/>.
     /// </returns>
-    protected virtual ValueTask PostDisposeAsync()
+    protected virtual ValueTask PostInitializeOrUpdateAsync(CancellationToken cancellationToken = default)
     {
         return new ValueTask(Task.CompletedTask);
-    }
-
-    /// <inheritdoc/>
-    protected async ValueTask DisposeAsync(bool disposing)
-    {
-        if (disposing)
-        {
-            await PreDisposeAsync();
-            await PostDisposeAsync();
-        }
-    }
-
-    /// <inheritdoc/>
-    public async void Dispose()
-    {
-        await DisposeAsync();
     }
 
     #endregion
