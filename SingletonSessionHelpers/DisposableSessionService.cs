@@ -45,6 +45,15 @@ public abstract partial class DisposableSessionService : SessionService, IDispos
         if (disposing)
         {
             await PreDisposeAsync();
+
+            foreach (var service in SubscribedSessionServices)
+            {
+                if (service is IDisposableSessionService sessionService)
+                {
+                    await sessionService.DisposeAsync();
+                }
+            }
+
             await PostDisposeAsync();
         }
     }

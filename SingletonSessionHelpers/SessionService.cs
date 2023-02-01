@@ -154,6 +154,8 @@ public abstract partial class SessionService : ISessionService
     /// <inheritdoc/>
     public bool IsUpdating { get; private set; }
 
+    internal List<ISessionService> SubscribedSessionServices { get; } = new();
+
     #endregion
 
     #region Initialize Logic
@@ -205,8 +207,16 @@ public abstract partial class SessionService : ISessionService
             try
             {
                 await PreInitializeAsync(cancellationToken);
+
                 await PreInitializeOrUpdateAsync(cancellationToken);
+
+                foreach (var service in SubscribedSessionServices)
+                {
+                    await service.InitializeAsync(cancellationToken);
+                }
+
                 await PostInitializeOrUpdateAsync(cancellationToken);
+
                 await PostInitializeAsync(cancellationToken);
 
                 IsInitialized = true;
@@ -294,8 +304,16 @@ public abstract partial class SessionService : ISessionService
             try
             {
                 await PreUpdateAsync(cancellationToken);
+
                 await PreInitializeOrUpdateAsync(cancellationToken);
+
+                foreach (var service in SubscribedSessionServices)
+                {
+                    await service.UpdateAsync(cancellationToken);
+                }
+
                 await PostInitializeOrUpdateAsync(cancellationToken);
+
                 await PostUpdateAsync(cancellationToken);
             }
             catch (Exception ex)
@@ -365,6 +383,28 @@ public abstract partial class SessionService : ISessionService
     protected virtual ValueTask PostInitializeOrUpdateAsync(CancellationToken cancellationToken = default)
     {
         return new ValueTask(Task.CompletedTask);
+    }
+
+    #endregion
+
+    #region Methods
+
+    /// <summary>
+    /// Subscribe the <see cref="ISessionService"/> with initialize and update actions.
+    /// </summary>
+    /// <param name="sessionService"> The <see cref="ISessionService"/> to subscribe. </param>
+    public void SubscribeSessionService(ISessionService sessionService)
+    {
+        SubscribedSessionServices.Add(sessionService);
+    }
+
+    /// <summary>
+    /// Unsubscribe the <see cref="ISessionService"/> from initialize and update actions.
+    /// </summary>
+    /// <param name="sessionService"> The <see cref="ISessionService"/> to unsubscribe. </param>
+    public void UnsubscribeSessionService(ISessionService sessionService)
+    {
+        SubscribedSessionServices.Remove(sessionService);
     }
 
     #endregion
