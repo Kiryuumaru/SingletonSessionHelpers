@@ -1,2 +1,2 @@
-1.0.7
-* Added dependent subscription
+1.0.8
+* Fixed disposable dispose sequence

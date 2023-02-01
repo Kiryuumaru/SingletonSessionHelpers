@@ -46,7 +46,7 @@ public abstract partial class DisposableSessionService : SessionService, IDispos
         {
             await PreDisposeAsync();
 
-            foreach (var service in SubscribedSessionServices)
+            foreach (var service in SubscribedSessionServices.ToArray().Reverse())
             {
                 if (service is IDisposableSessionService sessionService)
                 {
