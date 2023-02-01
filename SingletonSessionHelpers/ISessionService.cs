@@ -81,7 +81,7 @@ public interface ISessionService
     /// <returns>
     /// The created <see cref="ValueTask"/>.
     /// </returns>
-    ValueTask InitializeAsync(Func<RetryIfErrorArgs, Task>? onError, CancellationToken cancellationToken = default);
+    ValueTask InitializeAsync(Func<RetryIfErrorArgs, ValueTask>? onError, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Initializes the session service.
@@ -114,7 +114,7 @@ public interface ISessionService
     /// <returns>
     /// The created <see cref="ValueTask"/>.
     /// </returns>
-    ValueTask UpdateAsync(Func<RetryIfErrorArgs, Task>? onError, CancellationToken cancellationToken = default);
+    ValueTask UpdateAsync(Func<RetryIfErrorArgs, ValueTask>? onError, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Updates the session service.

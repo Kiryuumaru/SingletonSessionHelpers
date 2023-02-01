@@ -189,7 +189,7 @@ public abstract partial class SessionService : ISessionService
     }
 
     /// <inheritdoc/>
-    public async ValueTask InitializeAsync(Func<RetryIfErrorArgs, Task>? onError, CancellationToken cancellationToken = default)
+    public async ValueTask InitializeAsync(Func<RetryIfErrorArgs, ValueTask>? onError, CancellationToken cancellationToken = default)
     {
         if (IsInitialized)
         {
@@ -283,7 +283,7 @@ public abstract partial class SessionService : ISessionService
     }
 
     /// <inheritdoc/>
-    public async ValueTask UpdateAsync(Func<RetryIfErrorArgs, Task>? onError, CancellationToken cancellationToken = default)
+    public async ValueTask UpdateAsync(Func<RetryIfErrorArgs, ValueTask>? onError, CancellationToken cancellationToken = default)
     {
         IsUpdating = true;
 
