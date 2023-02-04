@@ -1,2 +1,2 @@
-1.0.9
-* Renames to shorter names
+1.1.0
+* Added TransactionHelpers to dependency

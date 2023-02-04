@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using TransactionHelpers;
 using static SingletonSessionHelpers.Abstraction.SessionService;
 
 namespace SingletonSessionHelpers.Abstraction;
@@ -27,7 +28,7 @@ public interface ISessionService
     /// <summary>
     /// Event invoked if the session initialization has failed.
     /// </summary>
-    event EventHandler<InitializationFailedEventArgs>? InitializationFailed;
+    event EventHandler<Exception>? InitializationFailed;
 
     /// <summary>
     /// Event invoked if the session is updating.
@@ -42,7 +43,7 @@ public interface ISessionService
     /// <summary>
     /// Event invoked if the session update has failed.
     /// </summary>
-    event EventHandler<UpdateFailedEventArgs>? UpdateFailed;
+    event EventHandler<Exception>? UpdateFailed;
 
     /// <summary>
     /// Event invoked if the session is initializing or updating.
@@ -72,27 +73,13 @@ public interface ISessionService
     /// <summary>
     /// Initializes the session service.
     /// </summary>
-    /// <param name="onError">
-    /// Callback for the initialization error to provide option to retry the operation.
-    /// </param>
     /// <param name="cancellationToken">
     /// The cancellation token for the created <see cref="ValueTask"/>.
     /// </param>
     /// <returns>
     /// The created <see cref="ValueTask"/>.
     /// </returns>
-    ValueTask InitializeAsync(Func<RetryIfErrorArgs, ValueTask>? onError, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Initializes the session service.
-    /// </summary>
-    /// <param name="cancellationToken">
-    /// The cancellation token for the created <see cref="ValueTask"/>.
-    /// </param>
-    /// <returns>
-    /// The created <see cref="ValueTask"/>.
-    /// </returns>
-    ValueTask InitializeAsync(CancellationToken cancellationToken = default);
+    ValueTask<Response> InitializeAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Initializes the session service and forget.
@@ -105,27 +92,13 @@ public interface ISessionService
     /// <summary>
     /// Updates the session service.
     /// </summary>
-    /// <param name="onError">
-    /// Callback for the update error to provide option to retry the operation.
-    /// </param>
     /// <param name="cancellationToken">
     /// The cancellation token for the created <see cref="ValueTask"/>.
     /// </param>
     /// <returns>
     /// The created <see cref="ValueTask"/>.
     /// </returns>
-    ValueTask UpdateAsync(Func<RetryIfErrorArgs, ValueTask>? onError, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Updates the session service.
-    /// </summary>
-    /// <param name="cancellationToken">
-    /// The cancellation token for the created <see cref="ValueTask"/>.
-    /// </param>
-    /// <returns>
-    /// The created <see cref="ValueTask"/>.
-    /// </returns>
-    ValueTask UpdateAsync(CancellationToken cancellationToken = default);
+    ValueTask<Response> UpdateAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Updates the session service and forget.

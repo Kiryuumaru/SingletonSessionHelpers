@@ -25,36 +25,8 @@ internal static class TaskHelpers
                 {
                     throw task.Exception;
                 }
+
             }, cancellationToken);
-        }
-    }
-
-    public static async Task RetryIfError(Func<Task> task, Func<RetryIfErrorArgs, Task> error, CancellationToken cancellationToken = default)
-    {
-        while (true)
-        {
-            try
-            {
-                await Task.Run(task, cancellationToken);
-
-                return;
-            }
-            catch (Exception ex)
-            {
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    return;
-                }
-                else
-                {
-                    RetryIfErrorArgs args = new(ex);
-                    await error.Invoke(args);
-                    if (!args.Retry)
-                    {
-                        return;
-                    }
-                }
-            }
         }
     }
 }

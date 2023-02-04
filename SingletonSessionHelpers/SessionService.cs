@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using TransactionHelpers;
 
 namespace SingletonSessionHelpers.Abstraction;
 
@@ -15,50 +16,6 @@ public abstract partial class SessionService : ISessionService
 {
     #region Events
 
-    /// <summary>
-    /// Event args for <see cref="InitializationFailed"/> event.
-    /// </summary>
-    public class InitializationFailedEventArgs : EventArgs
-    {
-        /// <summary>
-        /// The exception of the error.
-        /// </summary>
-        public Exception Exception { get; }
-
-        /// <summary>
-        /// Creates a new instance for <see cref="InitializationFailedEventArgs"/>.
-        /// </summary>
-        /// <param name="exception">
-        /// The exception of the error.
-        /// </param>
-        public InitializationFailedEventArgs(Exception exception)
-        {
-            Exception = exception;
-        }
-    }
-
-    /// <summary>
-    /// Event args for <see cref="UpdateFailed"/> event.
-    /// </summary>
-    public class UpdateFailedEventArgs : EventArgs
-    {
-        /// <summary>
-        /// The exception of the error.
-        /// </summary>
-        public Exception Exception { get; }
-
-        /// <summary>
-        /// Creates a new instance for <see cref="UpdateFailedEventArgs"/>.
-        /// </summary>
-        /// <param name="exception">
-        /// The exception of the error.
-        /// </param>
-        public UpdateFailedEventArgs(Exception exception)
-        {
-            Exception = exception;
-        }
-    }
-
     /// <inheritdoc/>
     public event EventHandler? Initializing;
 
@@ -66,7 +23,7 @@ public abstract partial class SessionService : ISessionService
     public event EventHandler? Initialized;
 
     /// <inheritdoc/>
-    public event EventHandler<InitializationFailedEventArgs>? InitializationFailed;
+    public event EventHandler<Exception>? InitializationFailed;
 
     /// <inheritdoc/>
     public event EventHandler? Updating;
@@ -75,7 +32,7 @@ public abstract partial class SessionService : ISessionService
     public event EventHandler? Updated;
 
     /// <inheritdoc/>
-    public event EventHandler<UpdateFailedEventArgs>? UpdateFailed;
+    public event EventHandler<Exception>? UpdateFailed;
 
     /// <inheritdoc/>
     public event EventHandler? InitializingOrUpdating;
@@ -109,7 +66,7 @@ public abstract partial class SessionService : ISessionService
     /// </param>
     protected virtual void OnInitializationFailed(Exception exception)
     {
-        InitializationFailed?.Invoke(this, new InitializationFailedEventArgs(exception));
+        InitializationFailed?.Invoke(this, exception);
     }
 
     /// <summary>
@@ -138,7 +95,7 @@ public abstract partial class SessionService : ISessionService
     /// </param>
     protected virtual void OnUpdateFailed(Exception exception)
     {
-        UpdateFailed?.Invoke(this, new UpdateFailedEventArgs(exception));
+        UpdateFailed?.Invoke(this, exception);
     }
 
     #endregion
@@ -171,9 +128,9 @@ public abstract partial class SessionService : ISessionService
     /// <returns>
     /// The created <see cref="ValueTask"/>.
     /// </returns>
-    protected virtual ValueTask PreInitializeAsync(CancellationToken cancellationToken = default)
+    protected virtual ValueTask<Response> PreInitializeAsync(CancellationToken cancellationToken = default)
     {
-        return new ValueTask(Task.CompletedTask);
+        return new ValueTask<Response>(new Response());
     }
 
     /// <summary>
@@ -185,71 +142,66 @@ public abstract partial class SessionService : ISessionService
     /// <returns>
     /// The created <see cref="ValueTask"/>.
     /// </returns>
-    protected virtual ValueTask PostInitializeAsync(CancellationToken cancellationToken = default)
+    protected virtual ValueTask<Response> PostInitializeAsync(CancellationToken cancellationToken = default)
     {
-        return new ValueTask(Task.CompletedTask);
+        return new ValueTask<Response>(new Response());
     }
 
     /// <inheritdoc/>
-    public async ValueTask InitializeAsync(Func<RetryIfErrorArgs, ValueTask>? onError, CancellationToken cancellationToken = default)
+    public async ValueTask<Response> InitializeAsync(CancellationToken cancellationToken = default)
     {
+        Response response = new();
+
         if (IsInitialized)
         {
-            return;
+            return response;
         }
 
         IsInitializing = true;
 
-        await TaskHelpers.SingleTaskInvoker(() => TaskHelpers.RetryIfError(async delegate
+        try
         {
-            OnInitializing();
-
-            try
+            await TaskHelpers.SingleTaskInvoker(async delegate
             {
-                await PreInitializeAsync(cancellationToken);
-
-                await PreInitializeOrUpdateAsync(cancellationToken);
-
-                foreach (var service in SubscribedSessionServices)
+                try
                 {
-                    await service.InitializeAsync(cancellationToken);
+                    OnInitializing();
+
+                    (await PreInitializeAsync(cancellationToken)).ThrowIfError();
+
+                    (await PreInitializeOrUpdateAsync(cancellationToken)).ThrowIfError();
+
+                    foreach (var service in SubscribedSessionServices)
+                    {
+                        (await service.InitializeAsync(cancellationToken)).ThrowIfError();
+                    }
+
+                    (await PostInitializeOrUpdateAsync(cancellationToken)).ThrowIfError();
+
+                    (await PostInitializeAsync(cancellationToken)).ThrowIfError();
+
+                    IsInitialized = true;
+
+                    OnInitialized();
+                }
+                catch
+                {
+                    throw;
+                }
+                finally
+                {
+                    IsInitializing = false;
                 }
 
-                await PostInitializeOrUpdateAsync(cancellationToken);
-
-                await PostInitializeAsync(cancellationToken);
-
-                IsInitialized = true;
-            }
-            catch (Exception ex)
-            {
-                OnInitializationFailed(ex);
-                throw;
-            }
-            finally
-            {
-                IsInitializing = false;
-                OnInitialized();
-            }
-
-        }, async ex =>
+            }, ref initializeHolder, cancellationToken);
+        }
+        catch (Exception ex)
         {
-            if (onError != null)
-            {
-                await onError.Invoke(ex);
-            }
+            OnInitializationFailed(ex);
+            response.Append(ex);
+        }
 
-        }, cancellationToken), ref initializeHolder, cancellationToken);
-    }
-
-    /// <inheritdoc/>
-    public ValueTask InitializeAsync(CancellationToken cancellationToken = default)
-    {
-        return InitializeAsync(args =>
-        {
-            throw args.Exception;
-
-        }, cancellationToken);
+        return response;
     }
 
     /// <inheritdoc/>
@@ -273,9 +225,9 @@ public abstract partial class SessionService : ISessionService
     /// <returns>
     /// The created <see cref="ValueTask"/>.
     /// </returns>
-    protected virtual ValueTask PreUpdateAsync(CancellationToken cancellationToken = default)
+    protected virtual ValueTask<Response> PreUpdateAsync(CancellationToken cancellationToken = default)
     {
-        return new ValueTask(Task.CompletedTask);
+        return new ValueTask<Response>(new Response());
     }
 
     /// <summary>
@@ -287,64 +239,59 @@ public abstract partial class SessionService : ISessionService
     /// <returns>
     /// The created <see cref="ValueTask"/>.
     /// </returns>
-    protected virtual ValueTask PostUpdateAsync(CancellationToken cancellationToken = default)
+    protected virtual ValueTask<Response> PostUpdateAsync(CancellationToken cancellationToken = default)
     {
-        return new ValueTask(Task.CompletedTask);
+        return new ValueTask<Response>(new Response());
     }
 
     /// <inheritdoc/>
-    public async ValueTask UpdateAsync(Func<RetryIfErrorArgs, ValueTask>? onError, CancellationToken cancellationToken = default)
+    public async ValueTask<Response> UpdateAsync(CancellationToken cancellationToken = default)
     {
+        Response response = new();
+
         IsUpdating = true;
 
-        await TaskHelpers.SingleTaskInvoker(() => TaskHelpers.RetryIfError(async delegate
+        try
         {
-            OnUpdating();
-
-            try
+            await TaskHelpers.SingleTaskInvoker(async delegate
             {
-                await PreUpdateAsync(cancellationToken);
+                OnUpdating();
 
-                await PreInitializeOrUpdateAsync(cancellationToken);
-
-                foreach (var service in SubscribedSessionServices)
+                try
                 {
-                    await service.UpdateAsync(cancellationToken);
+                    (await PreUpdateAsync(cancellationToken)).ThrowIfError();
+
+                    (await PreInitializeOrUpdateAsync(cancellationToken)).ThrowIfError();
+
+                    foreach (var service in SubscribedSessionServices)
+                    {
+                        (await service.UpdateAsync(cancellationToken)).ThrowIfError();
+                    }
+
+                    (await PostInitializeOrUpdateAsync(cancellationToken)).ThrowIfError();
+
+                    (await PostUpdateAsync(cancellationToken)).ThrowIfError();
+
+                    OnUpdated();
+                }
+                catch
+                {
+                    throw;
+                }
+                finally
+                {
+                    IsUpdating = false;
                 }
 
-                await PostInitializeOrUpdateAsync(cancellationToken);
-
-                await PostUpdateAsync(cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                OnUpdateFailed(ex);
-                throw;
-            }
-            finally
-            {
-                IsUpdating = false;
-                OnUpdated();
-            }
-
-        }, async ex =>
+            }, ref updateHolder, cancellationToken);
+        }
+        catch (Exception ex)
         {
-            if (onError != null)
-            {
-                await onError.Invoke(ex);
-            }
+            OnUpdateFailed(ex);
+            response.Append(ex);
+        }
 
-        }, cancellationToken), ref updateHolder, cancellationToken);
-    }
-
-    /// <inheritdoc/>
-    public ValueTask UpdateAsync(CancellationToken cancellationToken = default)
-    {
-        return UpdateAsync(args =>
-        {
-            throw args.Exception;
-
-        }, cancellationToken);
+        return response;
     }
 
     /// <inheritdoc/>
@@ -366,9 +313,9 @@ public abstract partial class SessionService : ISessionService
     /// <returns>
     /// The created <see cref="ValueTask"/>.
     /// </returns>
-    protected virtual ValueTask PreInitializeOrUpdateAsync(CancellationToken cancellationToken = default)
+    protected virtual ValueTask<Response> PreInitializeOrUpdateAsync(CancellationToken cancellationToken = default)
     {
-        return new ValueTask(Task.CompletedTask);
+        return new ValueTask<Response>(new Response());
     }
 
     /// <summary>
@@ -380,9 +327,9 @@ public abstract partial class SessionService : ISessionService
     /// <returns>
     /// The created <see cref="ValueTask"/>.
     /// </returns>
-    protected virtual ValueTask PostInitializeOrUpdateAsync(CancellationToken cancellationToken = default)
+    protected virtual ValueTask<Response> PostInitializeOrUpdateAsync(CancellationToken cancellationToken = default)
     {
-        return new ValueTask(Task.CompletedTask);
+        return new ValueTask<Response>(new Response());
     }
 
     #endregion

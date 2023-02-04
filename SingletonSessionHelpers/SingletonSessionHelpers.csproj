@@ -33,11 +33,12 @@
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="7.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="DisposableHelpers" Version="1.1.6" />
+    <PackageReference Include="DisposableHelpers" Version="1.1.9" />
+    <PackageReference Include="TransactionHelpers" Version="0.1.0" />
   </ItemGroup>
 
 </Project>
