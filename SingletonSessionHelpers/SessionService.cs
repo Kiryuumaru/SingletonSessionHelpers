@@ -393,7 +393,7 @@ public abstract partial class SessionService : ISessionService
     /// Subscribe the <see cref="ISessionService"/> with initialize and update actions.
     /// </summary>
     /// <param name="sessionService"> The <see cref="ISessionService"/> to subscribe. </param>
-    public void SubscribeSessionService(ISessionService sessionService)
+    public void SubscribeService(ISessionService sessionService)
     {
         SubscribedSessionServices.Add(sessionService);
     }
@@ -402,7 +402,7 @@ public abstract partial class SessionService : ISessionService
     /// Unsubscribe the <see cref="ISessionService"/> from initialize and update actions.
     /// </summary>
     /// <param name="sessionService"> The <see cref="ISessionService"/> to unsubscribe. </param>
-    public void UnsubscribeSessionService(ISessionService sessionService)
+    public void UnsubscribeService(ISessionService sessionService)
     {
         SubscribedSessionServices.Remove(sessionService);
     }

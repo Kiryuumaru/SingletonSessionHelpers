@@ -1,2 +1,2 @@
-1.0.8
-* Fixed disposable dispose sequence
+1.0.9
+* Renames to shorter names
