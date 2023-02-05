@@ -1,5 +1,6 @@
 [
   {
+    "enable": true,
     "id": "singletonSessionHelpers_nuget_test",
     "name": "SingletonSessionHelpers Test",
     "project_dir": "SingletonSessionHelpers.UnitTest",

@@ -1,5 +1,6 @@
 [
   {
+    "enable": true,
     "id": "singletonSessionHelpers_nuget",
     "name": "SingletonSessionHelpers NuGet",
     "project_dir": "SingletonSessionHelpers",
