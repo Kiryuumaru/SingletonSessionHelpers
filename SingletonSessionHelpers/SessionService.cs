@@ -111,6 +111,8 @@ public abstract partial class SessionService : ISessionService
 
     internal List<ISessionService> SubscribedSessionServices { get; } = new();
 
+    internal List<ISessionService> AsyncSubscribedSessionServices { get; } = new();
+
     #endregion
 
     #region Initialize Logic
@@ -169,9 +171,34 @@ public abstract partial class SessionService : ISessionService
 
                     (await PreInitializeOrUpdateAsync(cancellationToken)).ThrowIfError();
 
-                    foreach (var service in SubscribedSessionServices)
+                    List<Task<Response>> tasks = new()
                     {
-                        (await service.InitializeAsync(cancellationToken)).ThrowIfError();
+                        Task.Run(async delegate
+                        {
+                            Response taskResponse = new();
+
+                            foreach (var service in SubscribedSessionServices)
+                            {
+                                taskResponse.Append(await service.InitializeAsync(cancellationToken));
+
+                                if (taskResponse.IsError)
+                                {
+                                    return taskResponse;
+                                }
+                            }
+
+                            return taskResponse;
+                        })
+                    };
+
+                    foreach (var service in AsyncSubscribedSessionServices)
+                    {
+                        tasks.Add(service.InitializeAsync(cancellationToken).AsTask());
+                    }
+
+                    foreach (var result in await Task.WhenAll(tasks.ToArray()))
+                    {
+                        result.ThrowIfError();
                     }
 
                     (await PostInitializeOrUpdateAsync(cancellationToken)).ThrowIfError();
@@ -261,9 +288,34 @@ public abstract partial class SessionService : ISessionService
 
                     (await PreInitializeOrUpdateAsync(cancellationToken)).ThrowIfError();
 
-                    foreach (var service in SubscribedSessionServices)
+                    List<Task<Response>> tasks = new()
                     {
-                        (await service.UpdateAsync(cancellationToken)).ThrowIfError();
+                        Task.Run(async delegate
+                        {
+                            Response taskResponse = new();
+
+                            foreach (var service in SubscribedSessionServices)
+                            {
+                                taskResponse.Append(await service.UpdateAsync(cancellationToken));
+
+                                if (taskResponse.IsError)
+                                {
+                                    return taskResponse;
+                                }
+                            }
+
+                            return taskResponse;
+                        })
+                    };
+
+                    foreach (var service in AsyncSubscribedSessionServices)
+                    {
+                        tasks.Add(service.UpdateAsync(cancellationToken).AsTask());
+                    }
+
+                    foreach (var result in await Task.WhenAll(tasks.ToArray()))
+                    {
+                        result.ThrowIfError();
                     }
 
                     (await PostInitializeOrUpdateAsync(cancellationToken)).ThrowIfError();
@@ -338,9 +390,17 @@ public abstract partial class SessionService : ISessionService
     /// Subscribe the <see cref="ISessionService"/> with initialize and update actions.
     /// </summary>
     /// <param name="sessionService"> The <see cref="ISessionService"/> to subscribe. </param>
-    public void SubscribeService(ISessionService sessionService)
+    /// <param name="isAsync"> Sets <c>true</c> whether the service will process actions in async mode; otherwise, <c>false</c>. </param>
+    public void SubscribeService(ISessionService sessionService, bool isAsync = true)
     {
-        SubscribedSessionServices.Add(sessionService);
+        if (isAsync)
+        {
+            AsyncSubscribedSessionServices.Add(sessionService);
+        }
+        else
+        {
+            SubscribedSessionServices.Add(sessionService);
+        }
     }
 
     /// <summary>
@@ -350,6 +410,7 @@ public abstract partial class SessionService : ISessionService
     public void UnsubscribeService(ISessionService sessionService)
     {
         SubscribedSessionServices.Remove(sessionService);
+        AsyncSubscribedSessionServices.Remove(sessionService);
     }
 
     #endregion
