@@ -270,9 +270,19 @@ public abstract partial class SessionService : ISessionService
     }
 
     /// <inheritdoc/>
-    public async ValueTask<Response> UpdateAsync(CancellationToken cancellationToken = default)
+    public async ValueTask<Response> UpdateAsync(bool initializeFirst = true, CancellationToken cancellationToken = default)
     {
         Response response = new();
+
+        if (!IsInitialized && initializeFirst)
+        {
+            response.Append(await InitializeAsync(cancellationToken));
+
+            if (response.IsError)
+            {
+                return response;
+            }
+        }
 
         IsUpdating = true;
 
@@ -296,7 +306,7 @@ public abstract partial class SessionService : ISessionService
 
                             foreach (var service in SubscribedSessionServices)
                             {
-                                taskResponse.Append(await service.UpdateAsync(cancellationToken));
+                                taskResponse.Append(await service.UpdateAsync(initializeFirst, cancellationToken));
 
                                 if (taskResponse.IsError)
                                 {
@@ -310,7 +320,7 @@ public abstract partial class SessionService : ISessionService
 
                     foreach (var service in AsyncSubscribedSessionServices)
                     {
-                        tasks.Add(service.UpdateAsync(cancellationToken).AsTask());
+                        tasks.Add(service.UpdateAsync(initializeFirst, cancellationToken).AsTask());
                     }
 
                     foreach (var result in await Task.WhenAll(tasks.ToArray()))
@@ -345,9 +355,9 @@ public abstract partial class SessionService : ISessionService
     }
 
     /// <inheritdoc/>
-    public async void Update(CancellationToken cancellationToken = default)
+    public async void Update(bool initializeFirst = true, CancellationToken cancellationToken = default)
     {
-        await UpdateAsync(cancellationToken);
+        await UpdateAsync(initializeFirst, cancellationToken);
     }
 
     #endregion

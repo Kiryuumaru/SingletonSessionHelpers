@@ -87,19 +87,25 @@ public interface ISessionService
     /// <summary>
     /// Updates the session service.
     /// </summary>
+    /// <param name="initializeFirst">
+    /// Sets to <c>true</c> whether the update will initialize the service first if not already initialized; otherwise, <c>false</c>.
+    /// </param>
     /// <param name="cancellationToken">
     /// The cancellation token for the created <see cref="ValueTask"/>.
     /// </param>
     /// <returns>
     /// The created <see cref="ValueTask"/>.
     /// </returns>
-    ValueTask<Response> UpdateAsync(CancellationToken cancellationToken = default);
+    ValueTask<Response> UpdateAsync(bool initializeFirst = true, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Updates the session service and forget.
     /// </summary>
+    /// <param name="initializeFirst">
+    /// Sets to <c>true</c> whether the update will initialize the service first if not already initialized; otherwise, <c>false</c>.
+    /// </param>
     /// <param name="cancellationToken">
     /// The cancellation token for the operation.
     /// </param>
-    void Update(CancellationToken cancellationToken = default);
+    void Update(bool initializeFirst = true, CancellationToken cancellationToken = default);
 }

@@ -1,2 +1,2 @@
-1.2.0
-* Bump dependencies
+1.2.1
+* Added initialize first option for update methods
