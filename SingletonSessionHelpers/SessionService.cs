@@ -418,7 +418,7 @@ public abstract partial class SessionService : ISessionService
     }
 
     /// <inheritdoc/>
-    public async void Update(bool initializeFirst = true, CancellationToken cancellationToken = default)
+    public async void Update(bool initializeFirst, CancellationToken cancellationToken = default)
     {
         await UpdateAsync(initializeFirst, cancellationToken);
     }
