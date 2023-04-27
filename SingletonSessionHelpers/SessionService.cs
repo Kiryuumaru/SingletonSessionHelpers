@@ -230,9 +230,30 @@ public abstract partial class SessionService : ISessionService
     }
 
     /// <inheritdoc/>
+    public async ValueTask InitializeAsync(Func<Response, Task<bool>> retryCallback, CancellationToken cancellationToken = default)
+    {
+        bool retry = false;
+        do
+        {
+            Response response = await InitializeAsync(cancellationToken);
+            if (response.IsError)
+            {
+                retry = await retryCallback(response);
+            }
+        }
+        while (retry);
+    }
+
+    /// <inheritdoc/>
     public async void Initialize(CancellationToken cancellationToken = default)
     {
         await InitializeAsync(cancellationToken);
+    }
+
+    /// <inheritdoc/>
+    public async void Initialize(Func<Response, Task<bool>> retryCallback, CancellationToken cancellationToken = default)
+    {
+        await InitializeAsync(retryCallback, cancellationToken);
     }
 
     #endregion
@@ -270,7 +291,7 @@ public abstract partial class SessionService : ISessionService
     }
 
     /// <inheritdoc/>
-    public async ValueTask<Response> UpdateAsync(bool initializeFirst = true, CancellationToken cancellationToken = default)
+    public async ValueTask<Response> UpdateAsync(bool initializeFirst, CancellationToken cancellationToken = default)
     {
         Response response = new();
 
@@ -355,9 +376,63 @@ public abstract partial class SessionService : ISessionService
     }
 
     /// <inheritdoc/>
+    public ValueTask<Response> UpdateAsync(CancellationToken cancellationToken = default)
+    {
+        return UpdateAsync(true, cancellationToken);
+    }
+
+    /// <inheritdoc/>
+    public async ValueTask UpdateAsync(Func<Response, Task<bool>> retryCallback, CancellationToken cancellationToken = default)
+    {
+        bool retry = false;
+        do
+        {
+            Response response = await UpdateAsync(cancellationToken);
+            if (response.IsError)
+            {
+                retry = await retryCallback(response);
+            }
+        }
+        while (retry);
+    }
+
+    /// <inheritdoc/>
+    public async ValueTask UpdateAsync(bool initializeFirst, Func<Response, Task<bool>> retryCallback, CancellationToken cancellationToken = default)
+    {
+        bool retry = false;
+        do
+        {
+            Response response = await UpdateAsync(initializeFirst, cancellationToken);
+            if (response.IsError)
+            {
+                retry = await retryCallback(response);
+            }
+        }
+        while (retry);
+    }
+
+    /// <inheritdoc/>
+    public async void Update(CancellationToken cancellationToken = default)
+    {
+        await UpdateAsync(cancellationToken);
+    }
+
+    /// <inheritdoc/>
     public async void Update(bool initializeFirst = true, CancellationToken cancellationToken = default)
     {
         await UpdateAsync(initializeFirst, cancellationToken);
+    }
+
+    /// <inheritdoc/>
+    public async void Update(Func<Response, Task<bool>> retryCallback, CancellationToken cancellationToken = default)
+    {
+        await UpdateAsync(retryCallback, cancellationToken);
+    }
+
+    /// <inheritdoc/>
+    public async void Update(bool initializeFirst, Func<Response, Task<bool>> retryCallback, CancellationToken cancellationToken = default)
+    {
+        await UpdateAsync(initializeFirst, retryCallback, cancellationToken);
     }
 
     #endregion
