@@ -219,24 +219,24 @@ public abstract partial class SessionService : ISessionService
             if (SubscribedSessionServices.Count > 0 || AsyncSubscribedSessionServices.Count > 0)
             {
                 List<Task<Response>> tasks = new()
+                {
+                    Task.Run(async delegate
+                    {
+                        Response taskResponse = new();
+
+                        foreach (var service in SubscribedSessionServices)
                         {
-                            Task.Run(async delegate
+                            taskResponse.Append(await service.InitializeAsync(cancellationToken));
+
+                            if (taskResponse.IsError)
                             {
-                                Response taskResponse = new();
-
-                                foreach (var service in SubscribedSessionServices)
-                                {
-                                    taskResponse.Append(await service.InitializeAsync(cancellationToken));
-
-                                    if (taskResponse.IsError)
-                                    {
-                                        return taskResponse;
-                                    }
-                                }
-
                                 return taskResponse;
-                            })
-                        };
+                            }
+                        }
+
+                        return taskResponse;
+                    })
+                };
 
                 foreach (var service in AsyncSubscribedSessionServices)
                 {
@@ -369,24 +369,24 @@ public abstract partial class SessionService : ISessionService
             if (SubscribedSessionServices.Count > 0 || AsyncSubscribedSessionServices.Count > 0)
             {
                 List<Task<Response>> tasks = new()
+                {
+                    Task.Run(async delegate
+                    {
+                        Response taskResponse = new();
+
+                        foreach (var service in SubscribedSessionServices)
                         {
-                            Task.Run(async delegate
+                            taskResponse.Append(await service.UpdateAsync(initializeFirst, cancellationToken));
+
+                            if (taskResponse.IsError)
                             {
-                                Response taskResponse = new();
-
-                                foreach (var service in SubscribedSessionServices)
-                                {
-                                    taskResponse.Append(await service.UpdateAsync(initializeFirst, cancellationToken));
-
-                                    if (taskResponse.IsError)
-                                    {
-                                        return taskResponse;
-                                    }
-                                }
-
                                 return taskResponse;
-                            })
-                        };
+                            }
+                        }
+
+                        return taskResponse;
+                    })
+                };
 
                 foreach (var service in AsyncSubscribedSessionServices)
                 {
