@@ -1,2 +1,2 @@
-1.3.4
-* Added dateTime for last update
+1.3.5
+* Performance improvements

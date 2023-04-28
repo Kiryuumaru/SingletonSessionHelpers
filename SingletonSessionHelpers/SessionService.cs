@@ -1,5 +1,4 @@
-﻿using SingletonSessionHelpers.Utilities;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -149,11 +148,13 @@ public abstract partial class SessionService : ISessionService
 
     internal List<ISessionService> AsyncSubscribedSessionServices { get; } = new();
 
+    private readonly SemaphoreSlim initializerLocker = new(1, 1);
+
+    private readonly SemaphoreSlim updateLocker = new(1, 1);
+
     #endregion
 
     #region Initialize Logic
-
-    private Task? initializeHolder;
 
     /// <summary>
     /// Provides an overridable method for pre initialization phase of the session.
@@ -188,78 +189,83 @@ public abstract partial class SessionService : ISessionService
     {
         Response response = new();
 
-        if (IsInitialized)
+        try
         {
+            await initializerLocker.WaitAsync(cancellationToken);
+        }
+        catch { }
+
+        if (cancellationToken.IsCancellationRequested)
+        {
+            response.Append(new OperationCanceledException());
             return response;
         }
 
-        IsInitializing = true;
-
         try
         {
-            await TaskHelpers.SingleTaskInvoker(async delegate
+            if (IsInitialized)
             {
-                try
-                {
-                    OnInitializing();
+                return response;
+            }
 
-                    (await PreInitializeAsync(cancellationToken)).ThrowIfError();
+            IsInitializing = true;
 
-                    (await PreInitializeOrUpdateAsync(cancellationToken)).ThrowIfError();
+            OnInitializing();
 
-                    List<Task<Response>> tasks = new()
-                    {
-                        Task.Run(async delegate
+            (await PreInitializeAsync(cancellationToken)).ThrowIfError();
+
+            (await PreInitializeOrUpdateAsync(cancellationToken)).ThrowIfError();
+
+            if (SubscribedSessionServices.Count > 0 || AsyncSubscribedSessionServices.Count > 0)
+            {
+                List<Task<Response>> tasks = new()
                         {
-                            Response taskResponse = new();
-
-                            foreach (var service in SubscribedSessionServices)
+                            Task.Run(async delegate
                             {
-                                taskResponse.Append(await service.InitializeAsync(cancellationToken));
+                                Response taskResponse = new();
 
-                                if (taskResponse.IsError)
+                                foreach (var service in SubscribedSessionServices)
                                 {
-                                    return taskResponse;
+                                    taskResponse.Append(await service.InitializeAsync(cancellationToken));
+
+                                    if (taskResponse.IsError)
+                                    {
+                                        return taskResponse;
+                                    }
                                 }
-                            }
 
-                            return taskResponse;
-                        })
-                    };
+                                return taskResponse;
+                            })
+                        };
 
-                    foreach (var service in AsyncSubscribedSessionServices)
-                    {
-                        tasks.Add(service.InitializeAsync(cancellationToken).AsTask());
-                    }
-
-                    foreach (var result in await Task.WhenAll(tasks.ToArray()))
-                    {
-                        result.ThrowIfError();
-                    }
-
-                    (await PostInitializeOrUpdateAsync(cancellationToken)).ThrowIfError();
-
-                    (await PostInitializeAsync(cancellationToken)).ThrowIfError();
-
-                    IsInitialized = true;
-
-                    OnInitialized();
-                }
-                catch
+                foreach (var service in AsyncSubscribedSessionServices)
                 {
-                    throw;
-                }
-                finally
-                {
-                    IsInitializing = false;
+                    tasks.Add(service.InitializeAsync(cancellationToken).AsTask());
                 }
 
-            }, ref initializeHolder, cancellationToken);
+                foreach (var result in await Task.WhenAll(tasks.ToArray()))
+                {
+                    result.ThrowIfError();
+                }
+            }
+
+            (await PostInitializeOrUpdateAsync(cancellationToken)).ThrowIfError();
+
+            (await PostInitializeAsync(cancellationToken)).ThrowIfError();
+
+            IsInitialized = true;
+
+            OnInitialized();
         }
         catch (Exception ex)
         {
             OnInitializationFailed(ex);
             response.Append(ex);
+        }
+        finally
+        {
+            IsInitializing = false;
+            initializerLocker.Release();
         }
 
         return response;
@@ -296,8 +302,6 @@ public abstract partial class SessionService : ISessionService
 
     #region Update Logic
 
-    private Task? updateHolder;
-
     /// <summary>
     /// Provides an overridable method for pre update phase of the session.
     /// </summary>
@@ -331,82 +335,86 @@ public abstract partial class SessionService : ISessionService
     {
         Response response = new();
 
-        if (!IsInitialized && initializeFirst)
+        try
         {
-            response.Append(await InitializeAsync(cancellationToken));
-
-            if (response.IsError)
-            {
-                return response;
-            }
+            await updateLocker.WaitAsync(cancellationToken);
         }
-
-        IsUpdating = true;
+        catch { }
 
         try
         {
-            await TaskHelpers.SingleTaskInvoker(async delegate
+            if (cancellationToken.IsCancellationRequested)
             {
-                OnUpdating();
+                response.Append(new OperationCanceledException());
+                return response;
+            }
 
-                try
+            if (!IsInitialized && initializeFirst)
+            {
+                response.Append(await InitializeAsync(cancellationToken));
+                if (response.IsError)
                 {
-                    (await PreUpdateAsync(cancellationToken)).ThrowIfError();
+                    return response;
+                }
+            }
 
-                    (await PreInitializeOrUpdateAsync(cancellationToken)).ThrowIfError();
+            IsUpdating = true;
 
-                    List<Task<Response>> tasks = new()
-                    {
-                        Task.Run(async delegate
+            OnUpdating();
+
+            (await PreUpdateAsync(cancellationToken)).ThrowIfError();
+
+            (await PreInitializeOrUpdateAsync(cancellationToken)).ThrowIfError();
+
+            if (SubscribedSessionServices.Count > 0 || AsyncSubscribedSessionServices.Count > 0)
+            {
+                List<Task<Response>> tasks = new()
                         {
-                            Response taskResponse = new();
-
-                            foreach (var service in SubscribedSessionServices)
+                            Task.Run(async delegate
                             {
-                                taskResponse.Append(await service.UpdateAsync(initializeFirst, cancellationToken));
+                                Response taskResponse = new();
 
-                                if (taskResponse.IsError)
+                                foreach (var service in SubscribedSessionServices)
                                 {
-                                    return taskResponse;
+                                    taskResponse.Append(await service.UpdateAsync(initializeFirst, cancellationToken));
+
+                                    if (taskResponse.IsError)
+                                    {
+                                        return taskResponse;
+                                    }
                                 }
-                            }
 
-                            return taskResponse;
-                        })
-                    };
+                                return taskResponse;
+                            })
+                        };
 
-                    foreach (var service in AsyncSubscribedSessionServices)
-                    {
-                        tasks.Add(service.UpdateAsync(initializeFirst, cancellationToken).AsTask());
-                    }
-
-                    foreach (var result in await Task.WhenAll(tasks.ToArray()))
-                    {
-                        result.ThrowIfError();
-                    }
-
-                    (await PostInitializeOrUpdateAsync(cancellationToken)).ThrowIfError();
-
-                    (await PostUpdateAsync(cancellationToken)).ThrowIfError();
-
-                    OnUpdated();
-                }
-                catch
+                foreach (var service in AsyncSubscribedSessionServices)
                 {
-                    throw;
-                }
-                finally
-                {
-                    LastUpdate = DateTimeOffset.Now;
-                    IsUpdating = false;
+                    tasks.Add(service.UpdateAsync(initializeFirst, cancellationToken).AsTask());
                 }
 
-            }, ref updateHolder, cancellationToken);
+                foreach (var result in await Task.WhenAll(tasks.ToArray()))
+                {
+                    result.ThrowIfError();
+                }
+            }
+
+            (await PostInitializeOrUpdateAsync(cancellationToken)).ThrowIfError();
+
+            (await PostUpdateAsync(cancellationToken)).ThrowIfError();
+
+            OnUpdated();
         }
         catch (Exception ex)
         {
             OnUpdateFailed(ex);
             response.Append(ex);
+        }
+        finally
+        {
+            LastUpdate = DateTimeOffset.Now;
+            IsUpdating = false;
+            updateLocker.Release();
         }
 
         return response;
