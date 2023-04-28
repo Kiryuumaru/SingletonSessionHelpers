@@ -68,6 +68,11 @@ public interface ISessionService
     public bool IsUpdating { get; }
 
     /// <summary>
+    /// Gets the <see cref="DateTimeOffset"/> of the last update.
+    /// </summary>
+    public DateTimeOffset LastUpdate { get; }
+
+    /// <summary>
     /// Initializes the session service.
     /// </summary>
     /// <param name="cancellationToken">

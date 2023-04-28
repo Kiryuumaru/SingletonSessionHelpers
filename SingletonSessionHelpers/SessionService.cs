@@ -142,6 +142,9 @@ public abstract partial class SessionService : ISessionService
     /// <inheritdoc/>
     public bool IsUpdating { get; private set; }
 
+    /// <inheritdoc/>
+    public DateTimeOffset LastUpdate { get; private set; }
+
     internal List<ISessionService> SubscribedSessionServices { get; } = new();
 
     internal List<ISessionService> AsyncSubscribedSessionServices { get; } = new();
@@ -394,6 +397,7 @@ public abstract partial class SessionService : ISessionService
                 }
                 finally
                 {
+                    LastUpdate = DateTimeOffset.Now;
                     IsUpdating = false;
                 }
 
