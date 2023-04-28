@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using TransactionHelpers;
+using static SingletonSessionHelpers.Abstraction.SessionService;
 
 namespace SingletonSessionHelpers.Abstraction;
 
@@ -23,7 +24,7 @@ public interface ISessionService
     /// <summary>
     /// Event invoked if the session initialization has failed.
     /// </summary>
-    event EventHandler<Exception>? InitializationFailed;
+    event EventHandler<InitializationFailedEventArgs>? InitializationFailed;
 
     /// <summary>
     /// Event invoked if the session is updating.
@@ -38,7 +39,7 @@ public interface ISessionService
     /// <summary>
     /// Event invoked if the session update has failed.
     /// </summary>
-    event EventHandler<Exception>? UpdateFailed;
+    event EventHandler<UpdateFailedEventArgs>? UpdateFailed;
 
     /// <summary>
     /// Event invoked if the session is initializing or updating.

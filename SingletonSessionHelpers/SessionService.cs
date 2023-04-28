@@ -14,6 +14,38 @@ public abstract partial class SessionService : ISessionService
 {
     #region Events
 
+    /// <summary>
+    /// Event args for InitializationFailed event.
+    /// </summary>
+    public class InitializationFailedEventArgs : EventArgs
+    {
+        /// <summary>
+        /// The exception.
+        /// </summary>
+        public Exception Exception { get; }
+
+        internal InitializationFailedEventArgs(Exception exception)
+        {
+            Exception = exception;
+        }
+    }
+
+    /// <summary>
+    /// Event args for UpdateFailed event.
+    /// </summary>
+    public class UpdateFailedEventArgs : EventArgs
+    {
+        /// <summary>
+        /// The exception.
+        /// </summary>
+        public Exception Exception { get; }
+
+        internal UpdateFailedEventArgs(Exception exception)
+        {
+            Exception = exception;
+        }
+    }
+
     /// <inheritdoc/>
     public event EventHandler? Initializing;
 
@@ -21,7 +53,7 @@ public abstract partial class SessionService : ISessionService
     public event EventHandler? Initialized;
 
     /// <inheritdoc/>
-    public event EventHandler<Exception>? InitializationFailed;
+    public event EventHandler<InitializationFailedEventArgs>? InitializationFailed;
 
     /// <inheritdoc/>
     public event EventHandler? Updating;
@@ -30,7 +62,7 @@ public abstract partial class SessionService : ISessionService
     public event EventHandler? Updated;
 
     /// <inheritdoc/>
-    public event EventHandler<Exception>? UpdateFailed;
+    public event EventHandler<UpdateFailedEventArgs>? UpdateFailed;
 
     /// <inheritdoc/>
     public event EventHandler? InitializingOrUpdating;
@@ -64,7 +96,7 @@ public abstract partial class SessionService : ISessionService
     /// </param>
     protected virtual void OnInitializationFailed(Exception exception)
     {
-        InitializationFailed?.Invoke(this, exception);
+        InitializationFailed?.Invoke(this, new InitializationFailedEventArgs(exception));
     }
 
     /// <summary>
@@ -93,7 +125,7 @@ public abstract partial class SessionService : ISessionService
     /// </param>
     protected virtual void OnUpdateFailed(Exception exception)
     {
-        UpdateFailed?.Invoke(this, exception);
+        UpdateFailed?.Invoke(this, new UpdateFailedEventArgs(exception));
     }
 
     #endregion
