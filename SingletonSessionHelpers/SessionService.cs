@@ -1,6 +1,7 @@
 ﻿using SingletonSessionHelpers.Utilities;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using TransactionHelpers;
@@ -528,6 +529,17 @@ public abstract partial class SessionService : ISessionService
     {
         SubscribedSessionServices.Remove(sessionService);
         AsyncSubscribedSessionServices.Remove(sessionService);
+    }
+
+    /// <inheritdoc/>
+    public IEnumerable<(bool isAsync, ISessionService sessionService)> GetSubscribedSessionServices()
+    {
+        List<(bool isAsync, ISessionService sessionService)> services = new();
+
+        services.AddRange(SubscribedSessionServices.Select(i => (false, i)));
+        services.AddRange(AsyncSubscribedSessionServices.Select(i => (true, i)));
+
+        return services;
     }
 
     #endregion

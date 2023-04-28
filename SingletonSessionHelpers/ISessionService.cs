@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using TransactionHelpers;
@@ -209,4 +210,9 @@ public interface ISessionService
     /// The cancellation token for the operation.
     /// </param>
     void Update(bool initializeFirst, Func<Response, Task<bool>> retryCallback, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets all subscribed session services.
+    /// </summary>
+    IEnumerable<(bool isAsync, ISessionService sessionService)> GetSubscribedSessionServices();
 }
