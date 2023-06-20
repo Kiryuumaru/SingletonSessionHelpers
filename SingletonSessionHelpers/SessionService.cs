@@ -197,7 +197,11 @@ public abstract partial class SessionService : ISessionService
 
         if (cancellationToken.IsCancellationRequested)
         {
-            response = response.Append(new OperationCanceledException());
+            response = new()
+            {
+                AppendResponse = response,
+                AppendException = new OperationCanceledException()
+            };
             return response;
         }
 
@@ -226,7 +230,10 @@ public abstract partial class SessionService : ISessionService
 
                         foreach (var service in SubscribedSessionServices)
                         {
-                            taskResponse = taskResponse.Append(await service.InitializeAsync(cancellationToken));
+                            taskResponse = new()
+                            {
+                                AppendResponses = new[]{ taskResponse, await service.InitializeAsync(cancellationToken) }
+                            };
 
                             if (taskResponse.IsError)
                             {
@@ -263,7 +270,11 @@ public abstract partial class SessionService : ISessionService
         catch (Exception ex)
         {
             OnInitializationFailed(ex);
-            response = response.Append(ex);
+            response = new()
+            {
+                AppendResponse = response,
+                AppendException = ex
+            };
         }
         finally
         {
@@ -348,13 +359,20 @@ public abstract partial class SessionService : ISessionService
         {
             if (cancellationToken.IsCancellationRequested)
             {
-                response = response.Append(new OperationCanceledException());
+                response = new()
+                {
+                    AppendResponse = response,
+                    AppendException = new OperationCanceledException()
+                };
                 return response;
             }
 
             if (!IsInitialized && initializeFirst)
             {
-                response = response.Append(await InitializeAsync(cancellationToken));
+                response = new()
+                {
+                    AppendResponses = new[] { response, await InitializeAsync(cancellationToken) }
+                };
                 if (response.IsError)
                 {
                     return response;
@@ -379,7 +397,10 @@ public abstract partial class SessionService : ISessionService
 
                         foreach (var service in SubscribedSessionServices)
                         {
-                            taskResponse = taskResponse.Append(await service.UpdateAsync(initializeFirst, cancellationToken));
+                            taskResponse = new()
+                            {
+                                AppendResponses = new[]{ taskResponse, await service.UpdateAsync(initializeFirst, cancellationToken) }
+                            };
 
                             if (taskResponse.IsError)
                             {
@@ -414,7 +435,11 @@ public abstract partial class SessionService : ISessionService
         catch (Exception ex)
         {
             OnUpdateFailed(ex);
-            response = response.Append(ex);
+            response = new()
+            {
+                AppendResponse = response,
+                AppendException = ex
+            };
         }
         finally
         {
