@@ -165,9 +165,9 @@ public abstract partial class SessionService : ISessionService
     /// <returns>
     /// The created <see cref="ValueTask"/>.
     /// </returns>
-    protected virtual ValueTask<Response> PreInitializeAsync(CancellationToken cancellationToken = default)
+    protected virtual ValueTask<Result> PreInitializeAsync(CancellationToken cancellationToken = default)
     {
-        return new ValueTask<Response>(new Response());
+        return new ValueTask<Result>(new Result());
     }
 
     /// <summary>
@@ -179,15 +179,15 @@ public abstract partial class SessionService : ISessionService
     /// <returns>
     /// The created <see cref="ValueTask"/>.
     /// </returns>
-    protected virtual ValueTask<Response> PostInitializeAsync(CancellationToken cancellationToken = default)
+    protected virtual ValueTask<Result> PostInitializeAsync(CancellationToken cancellationToken = default)
     {
-        return new ValueTask<Response>(new Response());
+        return new ValueTask<Result>(new Result());
     }
 
     /// <inheritdoc/>
-    public async ValueTask<Response> InitializeAsync(CancellationToken cancellationToken = default)
+    public async ValueTask<Result> InitializeAsync(CancellationToken cancellationToken = default)
     {
-        Response response = new();
+        Result result = new();
 
         try
         {
@@ -197,19 +197,19 @@ public abstract partial class SessionService : ISessionService
 
         if (cancellationToken.IsCancellationRequested)
         {
-            response = new()
+            result = new()
             {
-                AppendResponse = response,
+                AppendResult = result,
                 AppendException = new OperationCanceledException()
             };
-            return response;
+            return result;
         }
 
         try
         {
             if (IsInitialized)
             {
-                return response;
+                return result;
             }
 
             IsInitializing = true;
@@ -222,26 +222,26 @@ public abstract partial class SessionService : ISessionService
 
             if (SubscribedSessionServices.Count > 0 || AsyncSubscribedSessionServices.Count > 0)
             {
-                List<Task<Response>> tasks = new()
+                List<Task<Result>> tasks = new()
                 {
                     Task.Run(async delegate
                     {
-                        Response taskResponse = new();
+                        Result taskResult = new();
 
                         foreach (var service in SubscribedSessionServices)
                         {
-                            taskResponse = new()
+                            taskResult = new()
                             {
-                                AppendResponses = new[]{ taskResponse, await service.InitializeAsync(cancellationToken) }
+                                AppendResults = new[]{ taskResult, await service.InitializeAsync(cancellationToken) }
                             };
 
-                            if (taskResponse.IsError)
+                            if (taskResult.IsError)
                             {
-                                return taskResponse;
+                                return taskResult;
                             }
                         }
 
-                        return taskResponse;
+                        return taskResult;
                     })
                 };
 
@@ -250,11 +250,11 @@ public abstract partial class SessionService : ISessionService
                     tasks.Add(service.InitializeAsync(cancellationToken).AsTask());
                 }
 
-                foreach (var result in await Task.WhenAll(tasks.ToArray()))
+                foreach (var subResult in await Task.WhenAll(tasks.ToArray()))
                 {
-                    if (result.IsError)
+                    if (subResult.IsError)
                     {
-                        return result;
+                        return subResult;
                     }
                 }
             }
@@ -270,9 +270,9 @@ public abstract partial class SessionService : ISessionService
         catch (Exception ex)
         {
             OnInitializationFailed(ex);
-            response = new()
+            result = new()
             {
-                AppendResponse = response,
+                AppendResult = result,
                 AppendException = ex
             };
         }
@@ -282,19 +282,19 @@ public abstract partial class SessionService : ISessionService
             initializerLocker.Release();
         }
 
-        return response;
+        return result;
     }
 
     /// <inheritdoc/>
-    public async ValueTask InitializeAsync(Func<Response, Task<bool>> retryCallback, CancellationToken cancellationToken = default)
+    public async ValueTask InitializeAsync(Func<Result, Task<bool>> retryCallback, CancellationToken cancellationToken = default)
     {
         bool retry = false;
         do
         {
-            Response response = await InitializeAsync(cancellationToken);
-            if (response.IsError)
+            Result result = await InitializeAsync(cancellationToken);
+            if (result.IsError)
             {
-                retry = await retryCallback(response);
+                retry = await retryCallback(result);
             }
         }
         while (retry);
@@ -307,7 +307,7 @@ public abstract partial class SessionService : ISessionService
     }
 
     /// <inheritdoc/>
-    public async void Initialize(Func<Response, Task<bool>> retryCallback, CancellationToken cancellationToken = default)
+    public async void Initialize(Func<Result, Task<bool>> retryCallback, CancellationToken cancellationToken = default)
     {
         await InitializeAsync(retryCallback, cancellationToken);
     }
@@ -325,9 +325,9 @@ public abstract partial class SessionService : ISessionService
     /// <returns>
     /// The created <see cref="ValueTask"/>.
     /// </returns>
-    protected virtual ValueTask<Response> PreUpdateAsync(CancellationToken cancellationToken = default)
+    protected virtual ValueTask<Result> PreUpdateAsync(CancellationToken cancellationToken = default)
     {
-        return new ValueTask<Response>(new Response());
+        return new ValueTask<Result>(new Result());
     }
 
     /// <summary>
@@ -339,15 +339,15 @@ public abstract partial class SessionService : ISessionService
     /// <returns>
     /// The created <see cref="ValueTask"/>.
     /// </returns>
-    protected virtual ValueTask<Response> PostUpdateAsync(CancellationToken cancellationToken = default)
+    protected virtual ValueTask<Result> PostUpdateAsync(CancellationToken cancellationToken = default)
     {
-        return new ValueTask<Response>(new Response());
+        return new ValueTask<Result>(new Result());
     }
 
     /// <inheritdoc/>
-    public async ValueTask<Response> UpdateAsync(bool initializeFirst, CancellationToken cancellationToken = default)
+    public async ValueTask<Result> UpdateAsync(bool initializeFirst, CancellationToken cancellationToken = default)
     {
-        Response response = new();
+        Result result = new();
 
         try
         {
@@ -359,23 +359,23 @@ public abstract partial class SessionService : ISessionService
         {
             if (cancellationToken.IsCancellationRequested)
             {
-                response = new()
+                result = new()
                 {
-                    AppendResponse = response,
+                    AppendResult = result,
                     AppendException = new OperationCanceledException()
                 };
-                return response;
+                return result;
             }
 
             if (!IsInitialized && initializeFirst)
             {
-                response = new()
+                result = new()
                 {
-                    AppendResponses = new[] { response, await InitializeAsync(cancellationToken) }
+                    AppendResults = new[] { result, await InitializeAsync(cancellationToken) }
                 };
-                if (response.IsError)
+                if (result.IsError)
                 {
-                    return response;
+                    return result;
                 }
             }
 
@@ -389,26 +389,26 @@ public abstract partial class SessionService : ISessionService
 
             if (SubscribedSessionServices.Count > 0 || AsyncSubscribedSessionServices.Count > 0)
             {
-                List<Task<Response>> tasks = new()
+                List<Task<Result>> tasks = new()
                 {
                     Task.Run(async delegate
                     {
-                        Response taskResponse = new();
+                        Result taskResult = new();
 
                         foreach (var service in SubscribedSessionServices)
                         {
-                            taskResponse = new()
+                            taskResult = new()
                             {
-                                AppendResponses = new[]{ taskResponse, await service.UpdateAsync(initializeFirst, cancellationToken) }
+                                AppendResults = new[]{ taskResult, await service.UpdateAsync(initializeFirst, cancellationToken) }
                             };
 
-                            if (taskResponse.IsError)
+                            if (taskResult.IsError)
                             {
-                                return taskResponse;
+                                return taskResult;
                             }
                         }
 
-                        return taskResponse;
+                        return taskResult;
                     })
                 };
 
@@ -417,11 +417,11 @@ public abstract partial class SessionService : ISessionService
                     tasks.Add(service.UpdateAsync(initializeFirst, cancellationToken).AsTask());
                 }
 
-                foreach (var result in await Task.WhenAll(tasks.ToArray()))
+                foreach (var subResult in await Task.WhenAll(tasks.ToArray()))
                 {
-                    if (result.IsError)
+                    if (subResult.IsError)
                     {
-                        return result;
+                        return subResult;
                     }
                 }
             }
@@ -435,9 +435,9 @@ public abstract partial class SessionService : ISessionService
         catch (Exception ex)
         {
             OnUpdateFailed(ex);
-            response = new()
+            result = new()
             {
-                AppendResponse = response,
+                AppendResult = result,
                 AppendException = ex
             };
         }
@@ -448,40 +448,40 @@ public abstract partial class SessionService : ISessionService
             updateLocker.Release();
         }
 
-        return response;
+        return result;
     }
 
     /// <inheritdoc/>
-    public ValueTask<Response> UpdateAsync(CancellationToken cancellationToken = default)
+    public ValueTask<Result> UpdateAsync(CancellationToken cancellationToken = default)
     {
         return UpdateAsync(true, cancellationToken);
     }
 
     /// <inheritdoc/>
-    public async ValueTask UpdateAsync(Func<Response, Task<bool>> retryCallback, CancellationToken cancellationToken = default)
+    public async ValueTask UpdateAsync(Func<Result, Task<bool>> retryCallback, CancellationToken cancellationToken = default)
     {
         bool retry = false;
         do
         {
-            Response response = await UpdateAsync(cancellationToken);
-            if (response.IsError)
+            Result result = await UpdateAsync(cancellationToken);
+            if (result.IsError)
             {
-                retry = await retryCallback(response);
+                retry = await retryCallback(result);
             }
         }
         while (retry);
     }
 
     /// <inheritdoc/>
-    public async ValueTask UpdateAsync(bool initializeFirst, Func<Response, Task<bool>> retryCallback, CancellationToken cancellationToken = default)
+    public async ValueTask UpdateAsync(bool initializeFirst, Func<Result, Task<bool>> retryCallback, CancellationToken cancellationToken = default)
     {
         bool retry = false;
         do
         {
-            Response response = await UpdateAsync(initializeFirst, cancellationToken);
-            if (response.IsError)
+            Result result = await UpdateAsync(initializeFirst, cancellationToken);
+            if (result.IsError)
             {
-                retry = await retryCallback(response);
+                retry = await retryCallback(result);
             }
         }
         while (retry);
@@ -500,13 +500,13 @@ public abstract partial class SessionService : ISessionService
     }
 
     /// <inheritdoc/>
-    public async void Update(Func<Response, Task<bool>> retryCallback, CancellationToken cancellationToken = default)
+    public async void Update(Func<Result, Task<bool>> retryCallback, CancellationToken cancellationToken = default)
     {
         await UpdateAsync(retryCallback, cancellationToken);
     }
 
     /// <inheritdoc/>
-    public async void Update(bool initializeFirst, Func<Response, Task<bool>> retryCallback, CancellationToken cancellationToken = default)
+    public async void Update(bool initializeFirst, Func<Result, Task<bool>> retryCallback, CancellationToken cancellationToken = default)
     {
         await UpdateAsync(initializeFirst, retryCallback, cancellationToken);
     }
@@ -524,9 +524,9 @@ public abstract partial class SessionService : ISessionService
     /// <returns>
     /// The created <see cref="ValueTask"/>.
     /// </returns>
-    protected virtual ValueTask<Response> PreInitializeOrUpdateAsync(CancellationToken cancellationToken = default)
+    protected virtual ValueTask<Result> PreInitializeOrUpdateAsync(CancellationToken cancellationToken = default)
     {
-        return new ValueTask<Response>(new Response());
+        return new ValueTask<Result>(new Result());
     }
 
     /// <summary>
@@ -538,9 +538,9 @@ public abstract partial class SessionService : ISessionService
     /// <returns>
     /// The created <see cref="ValueTask"/>.
     /// </returns>
-    protected virtual ValueTask<Response> PostInitializeOrUpdateAsync(CancellationToken cancellationToken = default)
+    protected virtual ValueTask<Result> PostInitializeOrUpdateAsync(CancellationToken cancellationToken = default)
     {
-        return new ValueTask<Response>(new Response());
+        return new ValueTask<Result>(new Result());
     }
 
     #endregion

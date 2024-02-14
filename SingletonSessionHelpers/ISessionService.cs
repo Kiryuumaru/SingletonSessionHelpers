@@ -81,7 +81,7 @@ public interface ISessionService
     /// <returns>
     /// The created <see cref="ValueTask"/>.
     /// </returns>
-    ValueTask<Response> InitializeAsync(CancellationToken cancellationToken = default);
+    ValueTask<Result> InitializeAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Initializes the session service.
@@ -95,7 +95,7 @@ public interface ISessionService
     /// <returns>
     /// The created <see cref="ValueTask"/>.
     /// </returns>
-    ValueTask InitializeAsync(Func<Response, Task<bool>> retryCallback, CancellationToken cancellationToken = default);
+    ValueTask InitializeAsync(Func<Result, Task<bool>> retryCallback, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Initializes the session service and forget.
@@ -114,7 +114,7 @@ public interface ISessionService
     /// <param name="cancellationToken">
     /// The cancellation token for the operation.
     /// </param>
-    void Initialize(Func<Response, Task<bool>> retryCallback, CancellationToken cancellationToken = default);
+    void Initialize(Func<Result, Task<bool>> retryCallback, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Updates the session service.
@@ -125,7 +125,7 @@ public interface ISessionService
     /// <returns>
     /// The created <see cref="ValueTask"/>.
     /// </returns>
-    ValueTask<Response> UpdateAsync(CancellationToken cancellationToken = default);
+    ValueTask<Result> UpdateAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Updates the session service.
@@ -139,7 +139,7 @@ public interface ISessionService
     /// <returns>
     /// The created <see cref="ValueTask"/>.
     /// </returns>
-    ValueTask<Response> UpdateAsync(bool initializeFirst, CancellationToken cancellationToken = default);
+    ValueTask<Result> UpdateAsync(bool initializeFirst, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Updates the session service.
@@ -153,7 +153,7 @@ public interface ISessionService
     /// <returns>
     /// The created <see cref="ValueTask"/>.
     /// </returns>
-    ValueTask UpdateAsync(Func<Response, Task<bool>> retryCallback, CancellationToken cancellationToken = default);
+    ValueTask UpdateAsync(Func<Result, Task<bool>> retryCallback, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Updates the session service.
@@ -170,7 +170,7 @@ public interface ISessionService
     /// <returns>
     /// The created <see cref="ValueTask"/>.
     /// </returns>
-    ValueTask UpdateAsync(bool initializeFirst, Func<Response, Task<bool>> retryCallback, CancellationToken cancellationToken = default);
+    ValueTask UpdateAsync(bool initializeFirst, Func<Result, Task<bool>> retryCallback, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Updates the session service and forget.
@@ -200,7 +200,7 @@ public interface ISessionService
     /// <param name="cancellationToken">
     /// The cancellation token for the operation.
     /// </param>
-    void Update(Func<Response, Task<bool>> retryCallback, CancellationToken cancellationToken = default);
+    void Update(Func<Result, Task<bool>> retryCallback, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Updates the session service and forget.
@@ -214,7 +214,7 @@ public interface ISessionService
     /// <param name="cancellationToken">
     /// The cancellation token for the operation.
     /// </param>
-    void Update(bool initializeFirst, Func<Response, Task<bool>> retryCallback, CancellationToken cancellationToken = default);
+    void Update(bool initializeFirst, Func<Result, Task<bool>> retryCallback, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets all subscribed session services.
