@@ -5,7 +5,7 @@ on:
     branches:
     - prerelease
     - master
-    tags:
+    tags-ignore:
     - bump-*
 
 concurrency: "dependabot-auto-bump"
