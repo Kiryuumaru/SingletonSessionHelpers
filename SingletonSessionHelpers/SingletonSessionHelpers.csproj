@@ -37,7 +37,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="DisposableHelpers" Version="1.2.8" />
+    <PackageReference Include="DisposableHelpers" Version="1.2.9" />
     <PackageReference Include="TransactionHelpers" Version="2.5.11" />
   </ItemGroup>
 
