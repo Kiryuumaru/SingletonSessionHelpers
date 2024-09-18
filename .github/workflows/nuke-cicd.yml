@@ -86,8 +86,8 @@ jobs:
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: singleton_session_helpers___SINGLETONSESSIONHELPERSBUILD
-        path: ./.nuke/temp/artifacts/*
+        name: build___singleton_session_helpers___SINGLETONSESSIONHELPERSBUILD
+        path: ./.nuke/temp/artifacts-upload/*
         if-no-files-found: error
         retention-days: 1
     needs:
@@ -140,7 +140,7 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         path: ./.nuke/temp/artifacts-download
-        pattern: singleton_session_helpers___*
+        pattern: build___singleton_session_helpers___*
     - name: Cache Run
       uses: actions/cache@v4
       with:
@@ -152,6 +152,13 @@ jobs:
     - id: NUKE_RUN
       name: Run Nuke PipelineRunEntry
       run: ${{ needs.PRE_SETUP.outputs.NUKE_PRE_SETUP_SINGLETONSESSIONHELPERSPUBLISH_RUN_SCRIPT }} PipelineRunEntry --args "run=publish;idsToRun=SingletonSessionHelpersPublish"
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: publish___singleton_session_helpers___SINGLETONSESSIONHELPERSPUBLISH
+        path: ./.nuke/temp/artifacts-upload/*
+        if-no-files-found: error
+        retention-days: 1
     needs:
     - PRE_SETUP
     - SINGLETONSESSIONHELPERSBUILD
@@ -174,6 +181,7 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         path: ./.nuke/temp/artifacts-download
+        pattern: publish___*
     - name: Run Nuke PipelinePostSetup
       run: chmod +x ./build.sh && ./build.sh PipelinePostSetup
       env:
