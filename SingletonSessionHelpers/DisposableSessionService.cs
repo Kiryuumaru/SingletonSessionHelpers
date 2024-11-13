@@ -8,7 +8,7 @@ namespace SingletonSessionHelpers.Abstraction;
 /// <summary>
 /// Implementation for all singleton session service.
 /// </summary>
-[AsyncDisposable]
+[Disposable]
 public abstract partial class DisposableSessionService : SessionService, IDisposableSessionService
 {
     #region Disposable Logic
@@ -52,12 +52,6 @@ public abstract partial class DisposableSessionService : SessionService, IDispos
 
             await PostDisposeAsync();
         }
-    }
-
-    /// <inheritdoc/>
-    public async void Dispose()
-    {
-        await DisposeAsync();
     }
 
     #endregion
