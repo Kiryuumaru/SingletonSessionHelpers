@@ -1,44 +1,44 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net6.0;net7.0;net8.0</TargetFrameworks>
-    <LangVersion>11</LangVersion>
-    <Nullable>enable</Nullable>
-    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;net6.0;net7.0;net8.0;net9.0</TargetFrameworks>
+		<LangVersion>13</LangVersion>
+		<Nullable>enable</Nullable>
+		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+	</PropertyGroup>
 
-  <PropertyGroup>
-    <Authors>Kiryuumaru</Authors>
-    <Company>Kiryuumaru</Company>
-    <Copyright>Kiryuumaru</Copyright>
-    <Description>Provides a base API for singleton session design pattern.</Description>
-    <PackageTags>Singleton, Session, Helpers</PackageTags>
-    <PackageProjectUrl>https://github.com/Kiryuumaru/SingletonSessionHelpers</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/Kiryuumaru/SingletonSessionHelpers</RepositoryUrl>
-    <PackageLicenseFile>LICENSE</PackageLicenseFile>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-  </PropertyGroup>
+	<PropertyGroup>
+		<Authors>Kiryuumaru</Authors>
+		<Company>Kiryuumaru</Company>
+		<Copyright>Kiryuumaru</Copyright>
+		<Description>Provides a base API for singleton session design pattern.</Description>
+		<PackageTags>Singleton, Session, Helpers</PackageTags>
+		<PackageProjectUrl>https://github.com/Kiryuumaru/SingletonSessionHelpers</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/Kiryuumaru/SingletonSessionHelpers</RepositoryUrl>
+		<PackageLicenseFile>LICENSE</PackageLicenseFile>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <None Include="..\LICENSE" Pack="true" PackagePath="" />
-    <None Include="..\README.md" Pack="true" PackagePath="" />
-  </ItemGroup>
+	<ItemGroup>
+		<None Include="..\LICENSE" Pack="true" PackagePath="" />
+		<None Include="..\README.md" Pack="true" PackagePath="" />
+	</ItemGroup>
 
-	<PropertyGroup Condition="'$(TargetFramework)' == 'net6.0' OR '$(TargetFramework)' == 'net7.0' OR '$(TargetFramework)' == 'net8.0'">
-    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
-    <IsTrimmable>true</IsTrimmable>
-  </PropertyGroup>
+	<PropertyGroup Condition="'$(TargetFramework)' == 'net6.0' OR '$(TargetFramework)' == 'net7.0' OR '$(TargetFramework)' == 'net8.0' OR '$(TargetFramework)' == 'net9.0'">
+		<EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+		<IsTrimmable>true</IsTrimmable>
+	</PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="9.0.0" />
-  </ItemGroup>
+	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="9.0.0" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="DisposableHelpers" Version="1.2.67" />
-    <PackageReference Include="TransactionHelpers" Version="2.5.62" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="DisposableHelpers" Version="1.2.67" />
+		<PackageReference Include="TransactionHelpers" Version="2.5.62" />
+	</ItemGroup>
 
 </Project>
