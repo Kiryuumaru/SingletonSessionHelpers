@@ -225,7 +225,8 @@ public abstract partial class SessionService : ISessionService
 
                         foreach (var service in SubscribedSessionServices)
                         {
-                            taskResult.WithResult(new[]{ taskResult, await service.InitializeAsync(cancellationToken) });
+                            taskResult.WithResult(taskResult);
+                            taskResult.WithResult(await service.InitializeAsync(cancellationToken));
 
                             if (taskResult.IsError)
                             {
@@ -353,7 +354,8 @@ public abstract partial class SessionService : ISessionService
 
             if (!IsInitialized && initializeFirst)
             {
-                result.WithResult(new[] { result, await InitializeAsync(cancellationToken) });
+                result.WithResult(result);
+                result.WithResult(await InitializeAsync(cancellationToken));
                 if (result.IsError)
                 {
                     return result;
@@ -378,7 +380,8 @@ public abstract partial class SessionService : ISessionService
 
                         foreach (var service in SubscribedSessionServices)
                         {
-                            taskResult.WithResult(new[]{ taskResult, await service.UpdateAsync(initializeFirst, cancellationToken) });
+                            taskResult.WithResult(taskResult);
+                            taskResult.WithResult(await service.UpdateAsync(initializeFirst, cancellationToken));
 
                             if (taskResult.IsError)
                             {
