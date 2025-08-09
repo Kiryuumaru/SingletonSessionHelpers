@@ -38,6 +38,11 @@ class Build : BaseNukeBuildHelpers
             DotNetTasks.DotNetClean(_ => _
                 .SetProject(RootDirectory / "SingletonSessionHelpers.UnitTest" / "SingletonSessionHelpers.UnitTest.csproj"));
             DotNetTasks.DotNetTest(_ => _
+                .SetProcessAdditionalArguments(
+                    "--logger \"GitHubActions;summary.includePassedTests=true;summary.includeSkippedTests=true\" " +
+                    "-- " +
+                    "RunConfiguration.CollectSourceInformation=true " +
+                    "DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencovere ")
                 .SetProjectFile(RootDirectory / "SingletonSessionHelpers.UnitTest" / "SingletonSessionHelpers.UnitTest.csproj"));
         });
 
