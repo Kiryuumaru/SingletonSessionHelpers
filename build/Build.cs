@@ -13,7 +13,6 @@ using NukeBuildHelpers.Common.Attributes;
 using NukeBuildHelpers.Entry;
 using NukeBuildHelpers.Entry.Extensions;
 using NukeBuildHelpers.Runner.Abstraction;
-using NukeBuildHelpers.RunContext.Extensions;
 using NukeBuildHelpers.Common.Enums;
 
 class Build : BaseNukeBuildHelpers
@@ -51,18 +50,19 @@ class Build : BaseNukeBuildHelpers
         .RunnerOS(RunnerOS.Ubuntu2204)
         .Execute(context =>
         {
-            string version = "0.0.0";
+            var app = context.Apps.Values.First();
+            string version = app.AppVersion.ToString()!;
             string? releaseNotes = null;
-            if (context.TryGetBumpContext(out var bumpContext))
+            if (app.BumpVersion != null)
             {
-                version = bumpContext.AppVersion.Version.ToString();
-                releaseNotes = bumpContext.AppVersion.ReleaseNotes;
+                version = app.BumpVersion.Version.ToString();
+                releaseNotes = app.BumpVersion.ReleaseNotes;
             }
-            else if (context.TryGetPullRequestContext(out var pullRequestContext))
+            else if (app.PullRequestVersion != null)
             {
-                version = pullRequestContext.AppVersion.Version.ToString();
+                version = app.PullRequestVersion.Version.ToString();
             }
-            OutputDirectory.DeleteDirectory();
+            app.OutputDirectory.DeleteDirectory();
             DotNetTasks.DotNetClean(_ => _
                 .SetProject(RootDirectory / "SingletonSessionHelpers" / "SingletonSessionHelpers.csproj"));
             DotNetTasks.DotNetBuild(_ => _
@@ -77,25 +77,26 @@ class Build : BaseNukeBuildHelpers
                 .SetSymbolPackageFormat("snupkg")
                 .SetVersion(version)
                 .SetPackageReleaseNotes(NormalizeReleaseNotes(releaseNotes))
-                .SetOutputDirectory(OutputDirectory));
+                .SetOutputDirectory(app.OutputDirectory));
         });
 
     PublishEntry SingletonSessionHelpersPublish => _ => _
         .AppId("singleton_session_helpers")
         .RunnerOS(RunnerOS.Ubuntu2204)
-        .ReleaseCommonAsset(OutputDirectory)
-        .Execute(context =>
+        .Execute(async context =>
         {
-            if (context.RunType == RunType.Bump)
+            var app = context.Apps.Values.First();
+            if (app.RunType == RunType.Bump)
             {
                 DotNetTasks.DotNetNuGetPush(_ => _
                     .SetSource("https://nuget.pkg.github.com/kiryuumaru/index.json")
                     .SetApiKey(GithubToken)
-                    .SetTargetPath(OutputDirectory / "**"));
+                    .SetTargetPath(app.OutputDirectory / "**"));
                 DotNetTasks.DotNetNuGetPush(_ => _
                     .SetSource("https://api.nuget.org/v3/index.json")
                     .SetApiKey(NuGetAuthToken)
-                    .SetTargetPath(OutputDirectory / "**"));
+                    .SetTargetPath(app.OutputDirectory / "**"));
+                await AddReleaseAsset(app.OutputDirectory, app.AppId);
             }
         });
 
