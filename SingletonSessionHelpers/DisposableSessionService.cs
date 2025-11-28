@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using DisposableHelpers.Attributes;
@@ -42,7 +43,7 @@ public abstract partial class DisposableSessionService : SessionService, IDispos
         {
             await PreDisposeAsync();
 
-            foreach (var service in SubscribedSessionServices.ToArray().Reverse())
+            foreach (var service in (SubscribedSessionServices.ToArray() as IEnumerable<ISessionService>).Reverse())
             {
                 if (service is IDisposableSessionService sessionService)
                 {
