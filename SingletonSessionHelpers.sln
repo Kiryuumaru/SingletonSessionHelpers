@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SingletonSessionHelpers.Uni
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "_build", "build\_build.csproj", "{5A568F06-8A0F-454D-866C-2EE489817E6A}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkflowPatcher.Tests", "build\WorkflowPatcher.Tests\WorkflowPatcher.Tests.csproj", "{01012981-8353-4135-B0BB-54CD004E758F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -25,6 +27,10 @@ Global
 		{3B0D0257-BBFA-4049-8E44-D9951A005EAD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{5A568F06-8A0F-454D-866C-2EE489817E6A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5A568F06-8A0F-454D-866C-2EE489817E6A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01012981-8353-4135-B0BB-54CD004E758F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{01012981-8353-4135-B0BB-54CD004E758F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{01012981-8353-4135-B0BB-54CD004E758F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01012981-8353-4135-B0BB-54CD004E758F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
